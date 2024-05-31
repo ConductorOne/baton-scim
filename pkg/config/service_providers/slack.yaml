@@ -1,0 +1,48 @@
+apiEndpoint: "https://api.slack.com/scim/v2/"
+hasScimHeader: false
+auth:
+  authType: "oauth2"
+user:
+  id: "id"
+  userName: "userName"
+  displayName: "displayName"
+  firstName: "name.givenName"
+  lastName: "name.familyName"
+  primaryEmail: "emails[?(@.primary==true)].value"
+  firstEmail: "emails[0].value"
+  active: "active"
+  roles:
+    path: "roles"
+    name: "value"
+group:
+  id: "id"
+  displayName: "displayName"
+  members:
+    path: "members"
+    id: "value"
+    displayName: "display"
+pagination:
+  totalResults: "totalResults"
+  itemsPerPage: "itemsPerPage"
+  startIndex: "startIndex"
+provisioning:
+  addUserToGroup:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "add"
+    path: "members"
+    valuePath: "value"
+  removeUserFromGroup:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "replace"
+    path: "members"
+    valuePath: "value"
+  addUserRole:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "add"
+    path: "roles"
+    valuePath: "value"
+  removeUserRole:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "remove"
+    path: "roles"
+    valuePath: "value"

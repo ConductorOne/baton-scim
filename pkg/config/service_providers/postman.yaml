@@ -1,0 +1,33 @@
+apiEndpoint: "https://api.getpostman.com/scim/v2/"
+hasScimHeader: false
+auth:
+  authType: "apiKey"
+user:
+  id: "id"
+  userName: "userName"
+  firstName: "name.givenName"
+  lastName: "name.familyName"
+  primaryEmail: "userName"
+  active: "active"
+group:
+  id: "id"
+  displayName: "displayName"
+  members:
+    path: "members"
+    id: "value"
+    displayName: "display"
+pagination:
+  totalResults: "totalResults"
+  itemsPerPage: "itemsPerPage"
+  startIndex: "startIndex"
+provisioning:
+  addUserToGroup:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "add"
+    path: "members"
+    valuePath: "value"
+  removeUserFromGroup:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "replace"
+    path: "members"
+    valuePath: "value"
