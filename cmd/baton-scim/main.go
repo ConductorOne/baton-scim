@@ -11,7 +11,9 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.uber.org/zap"
 
+	scimConfig "github.com/conductorone/baton-scim/pkg/config"
 	"github.com/conductorone/baton-scim/pkg/connector"
+	scim "github.com/conductorone/baton-scim/pkg/scim"
 )
 
 var version = "dev"
@@ -27,6 +29,7 @@ func main() {
 	}
 
 	cmd.Version = version
+	cmdFlags(cmd)
 
 	err = cmd.Execute()
 	if err != nil {
@@ -38,7 +41,25 @@ func main() {
 func getConnector(ctx context.Context, cfg *config) (types.ConnectorServer, error) {
 	l := ctxzap.Extract(ctx)
 
-	cb, err := connector.New(ctx)
+	scimConfig, err := scimConfig.LoadConfig(cfg.ScimConfigFile, cfg.ServiceProvider)
+	if err != nil {
+		l.Error("error loading config", zap.Error(err))
+		return nil, err
+	}
+
+	config := scim.ConnectorConfig{
+		Token:            cfg.Token,
+		Username:         cfg.Username,
+		Password:         cfg.Password,
+		ApiKey:           cfg.ApiKey,
+		ScimClientID:     cfg.ScimClientID,
+		ScimClientSecret: cfg.ScimClientSecret,
+		AccountID:        cfg.AccountID,
+		ServiceProvider:  cfg.ServiceProvider,
+		ScimConfigFile:   cfg.ScimConfigFile,
+	}
+
+	cb, err := connector.New(ctx, scimConfig, &config)
 	if err != nil {
 		l.Error("error creating connector", zap.Error(err))
 		return nil, err

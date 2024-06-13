@@ -1,0 +1,51 @@
+apiEndpoint: "https://api.zoom.us/scim2/"
+hasScimHeader: true
+auth: 
+  authType: "oauth2"
+  shouldObtainToken: true
+  authUrl: "https://zoom.us/oauth/token"
+  tokenPath: "access_token"
+user:
+  id: "id"
+  userName: "userName"
+  firstName: "name.givenName"
+  lastName: "name.familyName"
+  primaryEmail: "emails[?(@.primary==true)].value"
+  firstEmail: "emails[0].value"
+  active: "active"
+  hasGroupsOnUser: true
+  userGroup:
+    path: groups
+    name: display
+  roles:
+    path: "roles"
+    name: "roles.value"
+    display: "roles.display"
+group:
+  id: "id"
+  displayName: "displayName"
+pagination:
+  totalResults: "totalResults"
+  itemsPerPage: "itemsPerPage"
+  startIndex: "startIndex"
+provisioning:
+  addUserToGroup:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "add"
+    path: "members"
+    valuePath: "value"
+  removeUserFromGroup:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "replace"
+    path: "members"
+    valuePath: "value"
+  addUserRole:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+    op: "add"
+    path: "roles"
+    valuePath: "value"
+  removeUserRole:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+    op: "remove"
+    path: "roles"
+    valuePath: "value"

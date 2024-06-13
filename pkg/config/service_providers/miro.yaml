@@ -1,0 +1,49 @@
+apiEndpoint: "https://miro.com/api/v1/scim"
+hasScimHeader: true
+auth:
+  authType: "apiKey"
+  apiKeyPrefix: "Bearer"
+user:
+  id: "id"
+  userName: "userName"
+  displayName: "displayName"
+  firstName: "name.givenName"
+  lastName: "name.familyName"
+  primaryEmail: "emails[?(@.primary==true)].value"
+  firstEmail: "emails[0].value"
+  active: "active"
+  roles:
+    path: "roles"
+    name: "value"
+    display: "display"
+group:
+  id: "id"
+  displayName: "displayName"
+  members:
+    path: "members"
+    id: "value"
+pagination:
+  totalResults: "totalResults"
+  itemsPerPage: "itemsPerPage"
+  startIndex: "startIndex"
+provisioning:
+  addUserToGroup:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "Add"
+    path: "members"
+    valuePath: "value"
+  removeUserFromGroup:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "Replace"
+    path: "members"
+    valuePath: "value"
+  addUserRole:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "Replace"
+    path: "roles.value"
+    valuePath: "value"
+  removeUserRole:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "Replace"
+    path: "roles.value"
+    valuePath: "value"
