@@ -1,14 +1,18 @@
 package scimconfig
 
 import (
+	"embed"
 	"fmt"
-	"os"
+	"io"
 	"path/filepath"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v2"
 )
+
+//go:embed service_providers
+var serviceProviders embed.FS
 
 type SCIMConfig struct {
 	// The URL of the SCIM API endpoint
@@ -140,14 +144,20 @@ func LoadConfig(filename string, serviceProvider string) (*SCIMConfig, error) {
 		if !isSupportedServiceProvider(serviceProvider) {
 			return nil, fmt.Errorf("unsupported service provider: %s", serviceProvider)
 		}
-		configFile = fmt.Sprintf("pkg/config/service_providers/%s.yaml", serviceProvider)
+		configFile = fmt.Sprintf("service_providers/%s.yaml", serviceProvider)
 	default:
 		return nil, fmt.Errorf("unexpected error")
 	}
 
-	buf, err := os.ReadFile(configFile)
+	file, err := serviceProviders.Open(configFile)
 	if err != nil {
 		return nil, fmt.Errorf("error reading config file: %w", err)
+	}
+	defer file.Close()
+
+	buf, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
 	}
 
 	var config SCIMConfig
@@ -180,9 +190,7 @@ func isSupportedServiceProvider(serviceProvider string) bool {
 }
 
 func getServiceProviders() ([]string, error) {
-	configDir := "pkg/config/service_providers"
-
-	files, err := os.ReadDir(configDir)
+	files, err := serviceProviders.ReadDir("service_providers")
 	if err != nil {
 		return nil, fmt.Errorf("error reading config directory: %w", err)
 	}
