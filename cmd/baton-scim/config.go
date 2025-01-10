@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/conductorone/baton-sdk/pkg/field"
 	"github.com/spf13/viper"
 )
@@ -99,7 +100,6 @@ var (
 // needs to perform extra validations that cannot be encoded with configuration
 // parameters.
 func ValidateConfig(v *viper.Viper) error {
-
 	if (v.GetString(ApiKeyField.FieldName) == "" && v.GetString(TokenField.FieldName) == "") &&
 		(v.GetString(UsernameField.FieldName) == "" || v.GetString(PasswordField.FieldName) == "") &&
 		(v.GetString(ScimClientIdField.FieldName) == "" || v.GetString(ScimClientSecretField.FieldName) == "") {

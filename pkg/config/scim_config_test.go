@@ -76,7 +76,7 @@ provisioning:
 		value, err := getConfigBytes(tempFile.Name(), "", "")
 
 		require.NoError(t, err)
-		require.True(t, bytes.Compare(value, []byte(yamlValue)) == 0)
+		require.True(t, bytes.Equal(value, []byte(yamlValue)))
 	})
 
 	t.Run("Provider", func(t *testing.T) {
@@ -97,6 +97,6 @@ provisioning:
 		value, err := getConfigBytes("", "", yamlValue)
 
 		require.NoError(t, err)
-		require.True(t, bytes.Compare(value, []byte(yamlValue)) == 0)
+		require.True(t, bytes.Equal(value, []byte(yamlValue)))
 	})
 }

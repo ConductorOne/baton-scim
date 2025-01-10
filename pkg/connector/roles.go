@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/conductorone/baton-sdk/pkg/types/grant"
 
 	"github.com/conductorone/baton-scim/pkg/scim"

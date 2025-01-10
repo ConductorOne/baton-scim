@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+
 	scimConfig "github.com/conductorone/baton-scim/pkg/config"
 	"github.com/conductorone/baton-scim/pkg/connector"
 	"github.com/conductorone/baton-scim/pkg/scim"
 	"github.com/spf13/viper"
-	"os"
 
 	"github.com/conductorone/baton-sdk/pkg/config"
 	"github.com/conductorone/baton-sdk/pkg/connectorbuilder"
