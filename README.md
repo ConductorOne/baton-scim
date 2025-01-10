@@ -1,6 +1,12 @@
-# `baton-scim` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-scim.svg)](https://pkg.go.dev/github.com/conductorone/baton-scim) ![main ci](https://github.com/conductorone/baton-scim/actions/workflows/main.yaml/badge.svg)
+![Baton Logo](./baton-logo.png)
 
-`baton-scim` is a generic connector for various SCIM service providers built using the [Baton SDK](https://github.com/conductorone/baton-sdk). It communicates with the SCIM API to sync data about users, groups and roles.
+#
+
+`baton-scim` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-scim.svg)](https://pkg.go.dev/github.com/conductorone/baton-scim) ![main ci](https://github.com/conductorone/baton-scim/actions/workflows/main.yaml/badge.svg)
+
+`baton-scim` is a generic connector for various SCIM service providers built using
+the [Baton SDK](https://github.com/conductorone/baton-sdk). It communicates with the SCIM API to sync data about users,
+groups and roles.
 Currently supported service providers:
 
 - miro
@@ -8,7 +14,9 @@ Currently supported service providers:
 - slack
 - zoom
 
-In case service provider you want to sync your data from is missing in the current implementation, you can pass your own yaml configuration file. Examples of these configuration files can be found in `service_providers` folder in the repository.
+In case service provider you want to sync your data from is missing in the current implementation, you can pass your own
+yaml configuration file. Examples of these configuration files can be found in `service_providers` folder in the
+repository.
 Check out [Baton](https://github.com/conductorone/baton) to learn more about the project in general.
 
 # Getting Started
@@ -18,8 +26,14 @@ Check out [Baton](https://github.com/conductorone/baton) to learn more about the
 1. Configured SSO and enabled SCIM for your service provider.
 2. Choose the service provider:
 
-- In case of syncing with already configured service providers, a flag `--service-provider` should be passed with the name of the provider. E.g --service-provider=slack
-- In case of a new service provider, a path to your yaml config file should be provided via `--scim-config` flag. Config file should contain information about the service provider and also mappings for user, group and role resources in SCIM. Resources are extracted using JSONPath expressions which help map various different responses to the predefined types for the resources used in the connector. That's why some fields in the config are required in order for connector to run properly. More info about JSONPath can be found [here](https://pkg.go.dev/github.com/PaesslerAG/jsonpath).
+- In case of syncing with already configured service providers, a flag `--service-provider` should be passed with the
+  name of the provider. E.g --service-provider=slack
+- In case of a new service provider, a path to your yaml config file should be provided via `--scim-config-file` flag.
+  Config file should contain information about the service provider and also mappings for user, group and role resources
+  in SCIM. Resources are extracted using [JSONPath](https://goessner.net/articles/JsonPath) expressions which help map
+  various different responses to the predefined types for the resources used in the connector. That's why some fields in
+  the config are required in order for connector to run properly. More info about JSONPath can be
+  found [here](https://pkg.go.dev/github.com/PaesslerAG/jsonpath).
 
 Config file example:
 
@@ -78,9 +92,11 @@ Config file example:
 
 3. Auth info:
 
-- in case auth token or api key can be obtained in the service provider interface pass it via `--token` flag for "oauth2" auth type, or as `--api-key` flag for "apiKey" auth type.
-- in case of "basic" auth type, provide username and password via `--username` and `--password` flags.
-- in case token should be obtained via oauth2 flow in the app, pass Client ID and Client Secret via `--scim-client-id` and `--scim-client-secret` flags.
+- in case auth token or api key can be obtained in the service provider interface pass it via `--token` flag for "
+  oauth2" auth type, or as `--api-key` flag for "apiKey" auth type.
+- in case of "basic" auth type, provide username and password via `--username`and `--password` flags.
+- in case token should be obtained via oauth2 flow in the app, pass Client ID and Client Secret via `--scim-client-id`
+  and `--scim-client-secret` flags.
 
 ## brew
 
@@ -127,7 +143,9 @@ baton resources
 
 # Contributing, Support and Issues
 
-We started Baton because we were tired of taking screenshots and manually building spreadsheets. We welcome contributions, and ideas, no matter how small -- our goal is to make identity and permissions sprawl less painful for everyone. If you have questions, problems, or ideas: Please open a Github Issue!
+We started Baton because we were tired of taking screenshots and manually building spreadsheets. We welcome
+contributions, and ideas, no matter how small -- our goal is to make identity and permissions sprawl less painful for
+everyone. If you have questions, problems, or ideas: Please open a Github Issue!
 
 See [CONTRIBUTING.md](https://github.com/ConductorOne/baton/blob/main/CONTRIBUTING.md) for more details.
 
