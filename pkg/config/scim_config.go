@@ -2,8 +2,9 @@ package scimconfig
 
 import (
 	"embed"
+	"errors"
 	"fmt"
-	"io"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -131,31 +132,29 @@ type PatchOperation struct {
 	ValuePath string `yaml:"valuePath" validate:"required"`
 }
 
-func LoadConfig(filename string, serviceProvider string) (*SCIMConfig, error) {
-	var configFile string
-	switch {
-	case filename != "" && serviceProvider != "":
-		return nil, fmt.Errorf("only one of scim-config or service-provider must be provided")
-	case filename == "" && serviceProvider == "":
-		return nil, fmt.Errorf("either scim-config or service-provider must be provided")
-	case filename != "":
-		configFile = filename
-	case serviceProvider != "":
+func getConfigBytes(filename, serviceProvider, rawConfigValue string) ([]byte, error) {
+	if filename != "" {
+		return os.ReadFile(filename)
+	}
+
+	if serviceProvider != "" {
 		if !isSupportedServiceProvider(serviceProvider) {
 			return nil, fmt.Errorf("unsupported service provider: %s", serviceProvider)
 		}
-		configFile = fmt.Sprintf("service_providers/%s.yaml", serviceProvider)
-	default:
-		return nil, fmt.Errorf("unexpected error")
+
+		configFile := fmt.Sprintf("service_providers/%s.yaml", serviceProvider)
+		return serviceProviders.ReadFile(configFile)
 	}
 
-	file, err := serviceProviders.Open(configFile)
-	if err != nil {
-		return nil, fmt.Errorf("error reading config file: %w", err)
+	if rawConfigValue != "" {
+		return []byte(rawConfigValue), nil
 	}
-	defer file.Close()
 
-	buf, err := io.ReadAll(file)
+	return nil, errors.New("must provide filename, serviceProvider or rawConfigValue")
+}
+
+func LoadConfig(filename, serviceProvider, rawConfigValue string) (*SCIMConfig, error) {
+	buf, err := getConfigBytes(filename, serviceProvider, rawConfigValue)
 	if err != nil {
 		return nil, err
 	}

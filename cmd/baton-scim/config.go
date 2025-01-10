@@ -9,8 +9,7 @@ import (
 var (
 	ServiceProviderField = field.StringField(
 		"service-provider",
-		field.WithRequired(true),
-		field.WithDescription("Name of the service provider to sync SCIM data from. E.g 'slack', 'zoom'."),
+		field.WithDescription("Name of the service provider to sync SCIM data from. E.g 'slack', 'zoom', 'miro', 'postman'."),
 	)
 
 	ScimConfigField = field.StringField(
@@ -57,8 +56,12 @@ var (
 
 	ScimConfigFileField = field.StringField(
 		"scim-config-file",
-		field.WithRequired(true),
 		field.WithDescription("Path to your YAML SCIM configuration file."),
+	)
+
+	ScimConfigValueField = field.StringField(
+		"scim-config-value",
+		field.WithDescription("raw value of YAML SCIM configuration file."),
 	)
 
 	AccountIdField = field.StringField(
@@ -81,6 +84,7 @@ var (
 		ScimClientSecretField,
 		ScimConfigFileField,
 		AccountIdField,
+		ScimConfigValueField,
 	}
 
 	// FieldRelationships defines relationships between the fields listed in
@@ -102,8 +106,10 @@ func ValidateConfig(v *viper.Viper) error {
 		return fmt.Errorf("either token, api-key or username and password, or scim-client-id and scim-client-secret must be provided")
 	}
 
-	if v.GetString(ScimConfigFileField.FieldName) == "" && v.GetString(ServiceProviderField.FieldName) == "" {
-		return fmt.Errorf("either scim-config or service-provider must be provided")
+	if v.GetString(ScimConfigFileField.FieldName) == "" &&
+		v.GetString(ServiceProviderField.FieldName) == "" &&
+		v.GetString(ScimConfigValueField.FieldName) == "" {
+		return fmt.Errorf("either scim-config-file, service-provider or scim-config-value must be provided")
 	}
 
 	return nil

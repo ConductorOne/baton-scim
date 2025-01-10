@@ -50,7 +50,11 @@ func getConnector(ctx context.Context, v *viper.Viper) (types.ConnectorServer, e
 		return nil, err
 	}
 
-	loadedScimConfig, err := scimConfig.LoadConfig(v.GetString(ScimConfigFileField.FieldName), v.GetString(ServiceProviderField.FieldName))
+	loadedScimConfig, err := scimConfig.LoadConfig(
+		v.GetString(ScimConfigFileField.FieldName),
+		v.GetString(ServiceProviderField.FieldName),
+		v.GetString(ScimConfigValueField.FieldName),
+	)
 	if err != nil {
 		l.Error("error loading config", zap.Error(err))
 		return nil, err
