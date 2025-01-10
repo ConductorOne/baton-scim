@@ -63,7 +63,7 @@ func New(ctx context.Context, scimConfig *scimConfig.SCIMConfig, connectorConfig
 			ServiceProvider: connectorConfig.ServiceProvider,
 		}, scimConfig.Auth.TokenPath)
 		if err != nil {
-			return nil, fmt.Errorf("scim-connector: failed to get token: %w", err)
+			return nil, fmt.Errorf("baton-scim: failed to get token: %w", err)
 		}
 	}
 
@@ -71,7 +71,7 @@ func New(ctx context.Context, scimConfig *scimConfig.SCIMConfig, connectorConfig
 
 	client, err := scim.NewClient(httpClient, *scimConfig, connectorConfig)
 	if err != nil {
-		return nil, fmt.Errorf("error creating client: %w", err)
+		return nil, fmt.Errorf("baton-scim: error creating client: %w", err)
 	}
 
 	return &Connector{

@@ -66,7 +66,7 @@ func (o *roleBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 	users, nextPage, err := o.client.ListUsers(ctx, paginationOptions)
 	if err != nil {
 		annos := errorAnnotations(err)
-		return nil, "", annos, fmt.Errorf("error fetching users: %w", err)
+		return nil, "", annos, fmt.Errorf("baton-scim: error fetching users: %w", err)
 	}
 
 	var roles []scim.Role
@@ -78,7 +78,7 @@ func (o *roleBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 	for _, role := range roles {
 		resource, err := roleResource(role)
 		if err != nil {
-			return nil, "", nil, fmt.Errorf("error creating role resource: %w", err)
+			return nil, "", nil, fmt.Errorf("baton-scim: error creating role resource: %w", err)
 		}
 		rv = append(rv, resource)
 	}

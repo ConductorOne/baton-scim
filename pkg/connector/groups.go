@@ -57,14 +57,14 @@ func (o *groupBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId
 	groups, nextPage, err := o.client.ListGroups(ctx, paginationOptions, scim.FilterOptions{})
 	if err != nil {
 		annos := errorAnnotations(err)
-		return nil, "", annos, fmt.Errorf("error fetching groups: %w", err)
+		return nil, "", annos, fmt.Errorf("baton-scim: error fetching groups: %w", err)
 	}
 
 	var rv []*v2.Resource
 	for _, group := range groups {
 		resource, err := groupResource(group)
 		if err != nil {
-			return nil, "", nil, fmt.Errorf("error creating group resource: %w", err)
+			return nil, "", nil, fmt.Errorf("baton-scim: error creating group resource: %w", err)
 		}
 		rv = append(rv, resource)
 	}
@@ -107,7 +107,7 @@ func (o *groupBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken
 	group, err := o.client.GetGroup(ctx, resource.Id.Resource)
 	if err != nil {
 		annos := errorAnnotations(err)
-		return nil, "", annos, fmt.Errorf("error fetching group: %w", err)
+		return nil, "", annos, fmt.Errorf("baton-scim: error fetching group: %w", err)
 	}
 
 	var rv []*v2.Grant
@@ -115,7 +115,7 @@ func (o *groupBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken
 		userCopy := member
 		ur, err := rs.NewResourceID(userResourceType, userCopy.ID)
 		if err != nil {
-			return nil, "", nil, fmt.Errorf("error creating user resource for group %s: %w", resource.Id.Resource, err)
+			return nil, "", nil, fmt.Errorf("baton-scim: error creating user resource for group %s: %w", resource.Id.Resource, err)
 		}
 
 		gr := grant.NewGrant(resource, groupMembership, ur)

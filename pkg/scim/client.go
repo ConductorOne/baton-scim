@@ -340,12 +340,12 @@ func (c *Client) AddUserToGroup(ctx context.Context, groupID string, userID stri
 		},
 	}
 
-	url, err := url.JoinPath(c.config.ApiEndpoint, groups, groupID)
+	urlRequest, err := url.JoinPath(c.config.ApiEndpoint, groups, groupID)
 	if err != nil {
 		return fmt.Errorf("error parsing URL: %w", err)
 	}
 
-	_, err = c.doRequest(ctx, http.MethodPatch, url, PaginationVars{}, requestBody, FilterOptions{})
+	_, err = c.doRequest(ctx, http.MethodPatch, urlRequest, PaginationVars{}, requestBody, FilterOptions{})
 	if err != nil {
 		return fmt.Errorf("error adding user to group: %w", err)
 	}
@@ -380,12 +380,12 @@ func (c *Client) RemoveUserFromGroup(ctx context.Context, groupID string, userID
 		},
 	}
 
-	url, err := url.JoinPath(c.config.ApiEndpoint, groups, groupID)
+	urlRequest, err := url.JoinPath(c.config.ApiEndpoint, groups, groupID)
 	if err != nil {
 		return fmt.Errorf("error parsing URL: %w", err)
 	}
 
-	_, err = c.doRequest(ctx, http.MethodPatch, url, PaginationVars{}, requestBody, FilterOptions{})
+	_, err = c.doRequest(ctx, http.MethodPatch, urlRequest, PaginationVars{}, requestBody, FilterOptions{})
 
 	if err != nil {
 		return fmt.Errorf("error removing user from group: %w", err)
@@ -422,12 +422,12 @@ func (c *Client) AddUserRole(ctx context.Context, roleName string, userID string
 		}
 	}
 
-	url, err := url.JoinPath(c.config.ApiEndpoint, users, userID)
+	urlRequest, err := url.JoinPath(c.config.ApiEndpoint, users, userID)
 	if err != nil {
 		return fmt.Errorf("error parsing URL: %w", err)
 	}
 
-	_, err = c.doRequest(ctx, method, url, PaginationVars{}, requestBody, FilterOptions{})
+	_, err = c.doRequest(ctx, method, urlRequest, PaginationVars{}, requestBody, FilterOptions{})
 	if err != nil {
 		return fmt.Errorf("error granting user role: %w", err)
 	}
@@ -459,12 +459,12 @@ func (c *Client) RevokeUserRole(ctx context.Context, roleName string, userID str
 		}
 	}
 
-	url, err := url.JoinPath(c.config.ApiEndpoint, users, userID)
+	urlRequest, err := url.JoinPath(c.config.ApiEndpoint, users, userID)
 	if err != nil {
 		return fmt.Errorf("error parsing URL: %w", err)
 	}
 
-	_, err = c.doRequest(ctx, method, url, PaginationVars{}, requestBody, FilterOptions{})
+	_, err = c.doRequest(ctx, method, urlRequest, PaginationVars{}, requestBody, FilterOptions{})
 	if err != nil {
 		return fmt.Errorf("error revoking user role: %w", err)
 	}
