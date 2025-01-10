@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/conductorone/baton-sdk/pkg/types/grant"
 
 	"github.com/conductorone/baton-scim/pkg/scim"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
@@ -120,7 +121,7 @@ func (o *roleBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken 
 	return nil, "", nil, nil
 }
 
-func (g *roleBuilder) Grant(ctx context.Context, principal *v2.Resource, entitlement *v2.Entitlement) (annotations.Annotations, error) {
+func (g *roleBuilder) Grant(ctx context.Context, principal *v2.Resource, entitlement *v2.Entitlement) ([]*v2.Grant, annotations.Annotations, error) {
 	l := ctxzap.Extract(ctx)
 
 	if principal.Id.ResourceType != userResourceType.Id {
@@ -129,15 +130,24 @@ func (g *roleBuilder) Grant(ctx context.Context, principal *v2.Resource, entitle
 			zap.String("principal_type", principal.Id.ResourceType),
 			zap.String("principal_id", principal.Id.Resource),
 		)
-		return nil, fmt.Errorf("baton-scim: only users can be granted a role")
+		return nil, nil, fmt.Errorf("baton-scim: only users can be granted a role")
 	}
 
-	err := g.client.AddUserRole(ctx, entitlement.Resource.DisplayName, principal.Id.Resource)
+	userId, err := rs.NewResourceID(userResourceType, principal.Id.Resource)
 	if err != nil {
-		return nil, fmt.Errorf("baton-scim: failed to add role to user: %w", err)
+		return nil, nil, fmt.Errorf("baton-scim: error creating user resource id: %w", err)
 	}
 
-	return nil, nil
+	err = g.client.AddUserRole(ctx, entitlement.Resource.DisplayName, principal.Id.Resource)
+	if err != nil {
+		return nil, nil, fmt.Errorf("baton-scim: failed to add role to user: %w", err)
+	}
+
+	rv := []*v2.Grant{
+		grant.NewGrant(principal, roleMembership, userId),
+	}
+
+	return rv, nil, nil
 }
 
 func (g *roleBuilder) Revoke(ctx context.Context, grant *v2.Grant) (annotations.Annotations, error) {

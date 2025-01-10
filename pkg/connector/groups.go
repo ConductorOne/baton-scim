@@ -125,7 +125,7 @@ func (o *groupBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken
 	return rv, "", nil, nil
 }
 
-func (g *groupBuilder) Grant(ctx context.Context, principal *v2.Resource, entitlement *v2.Entitlement) (annotations.Annotations, error) {
+func (g *groupBuilder) Grant(ctx context.Context, principal *v2.Resource, entitlement *v2.Entitlement) ([]*v2.Grant, annotations.Annotations, error) {
 	l := ctxzap.Extract(ctx)
 
 	if principal.Id.ResourceType != userResourceType.Id {
@@ -134,15 +134,24 @@ func (g *groupBuilder) Grant(ctx context.Context, principal *v2.Resource, entitl
 			zap.String("principal_type", principal.Id.ResourceType),
 			zap.String("principal_id", principal.Id.Resource),
 		)
-		return nil, fmt.Errorf("baton-scim: only users can be added to a group")
+		return nil, nil, fmt.Errorf("baton-scim: only users can be added to a group")
 	}
 
-	err := g.client.AddUserToGroup(ctx, entitlement.Resource.Id.Resource, principal.Id.Resource)
+	userId, err := rs.NewResourceID(userResourceType, principal.Id.Resource)
 	if err != nil {
-		return nil, fmt.Errorf("baton-scim: failed to add user to a group: %w", err)
+		return nil, nil, fmt.Errorf("baton-scim: error creating user resource id: %w", err)
 	}
 
-	return nil, nil
+	err = g.client.AddUserToGroup(ctx, entitlement.Resource.Id.Resource, principal.Id.Resource)
+	if err != nil {
+		return nil, nil, fmt.Errorf("baton-scim: failed to add user to a group: %w", err)
+	}
+
+	rv := []*v2.Grant{
+		grant.NewGrant(principal, groupMembership, userId),
+	}
+
+	return rv, nil, nil
 }
 
 func (g *groupBuilder) Revoke(ctx context.Context, grant *v2.Grant) (annotations.Annotations, error) {
