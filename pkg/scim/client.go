@@ -28,7 +28,6 @@ const (
 	currentResource = "$"
 
 	// Auth types.
-	oauth2 = "oauth2"
 	apiKey = "apiKey"
 	basic  = "basic"
 )
@@ -37,7 +36,6 @@ type Client struct {
 	httpClient       *uhttp.BaseHttpClient
 	config           *scimConfig.SCIMConfig
 	serviceProvider  string
-	authToken        string
 	apiKey           string
 	username         string
 	password         string
@@ -48,7 +46,6 @@ type Client struct {
 
 type ConnectorConfig struct {
 	ScimConfigFile   string
-	Token            string
 	ServiceProvider  string
 	Username         string
 	Password         string
@@ -64,7 +61,7 @@ type PaginationVars struct {
 	Count         int `json:"count,omitempty"`
 }
 
-// TODO: extend filter options
+// FilterOptions TODO: extend filter options
 type FilterOptions struct {
 	// Filter group by name.
 	Name string
@@ -113,7 +110,6 @@ func NewClient(httpClient *http.Client, config scimConfig.SCIMConfig, connectorC
 	return &Client{
 		httpClient:       uhttp.NewBaseHttpClient(httpClient),
 		config:           &config,
-		authToken:        connectorConfig.Token,
 		serviceProvider:  connectorConfig.ServiceProvider,
 		apiKey:           connectorConfig.ApiKey,
 		username:         connectorConfig.Username,
@@ -488,11 +484,6 @@ func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, pa
 	}
 
 	switch c.config.Auth.AuthType {
-	case oauth2:
-		if c.authToken == "" {
-			return nil, fmt.Errorf("missing auth token")
-		}
-		authHeader = uhttp.WithHeader("Authorization", fmt.Sprintf("Bearer %s", c.authToken))
 	case apiKey:
 		if c.apiKey == "" {
 			return nil, fmt.Errorf("missing api key")

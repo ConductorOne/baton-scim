@@ -15,43 +15,31 @@ var (
 
 	ScimConfigField = field.StringField(
 		"scim-config",
-		field.WithRequired(true),
 		field.WithDescription("Path to your YAML SCIM configuration file."),
-	)
-
-	TokenField = field.StringField(
-		"token",
-		field.WithRequired(true),
-		field.WithDescription("Token to authenticate with the SCIM API."),
 	)
 
 	ApiKeyField = field.StringField(
 		"api-key",
-		field.WithRequired(true),
 		field.WithDescription("API key to authenticate with the SCIM API."),
 	)
 
 	UsernameField = field.StringField(
 		"username",
-		field.WithRequired(true),
 		field.WithDescription("Username for basic auth to authenticate with the SCIM API."),
 	)
 
 	PasswordField = field.StringField(
 		"password",
-		field.WithRequired(true),
 		field.WithDescription("Password for basic auth to authenticate with the SCIM API."),
 	)
 
 	ScimClientIdField = field.StringField(
 		"scim-client-id",
-		field.WithRequired(true),
 		field.WithDescription("Client ID used to obtain access token for the SCIM API."),
 	)
 
 	ScimClientSecretField = field.StringField(
 		"scim-client-secret",
-		field.WithRequired(true),
 		field.WithDescription("Client Secret used to obtain access token for the SCIM API. ($BATON_SCIM_CLIENT_SECRET)"),
 	)
 
@@ -67,7 +55,6 @@ var (
 
 	AccountIdField = field.StringField(
 		"account-id",
-		field.WithRequired(true),
 		field.WithDescription("Account ID used to obtain access token for the SCIM API."),
 	)
 
@@ -77,7 +64,6 @@ var (
 	ConfigurationFields = []field.SchemaField{
 		ServiceProviderField,
 		ScimConfigField,
-		TokenField,
 		ApiKeyField,
 		UsernameField,
 		PasswordField,
@@ -100,7 +86,7 @@ var (
 // needs to perform extra validations that cannot be encoded with configuration
 // parameters.
 func ValidateConfig(v *viper.Viper) error {
-	if (v.GetString(ApiKeyField.FieldName) == "" && v.GetString(TokenField.FieldName) == "") &&
+	if (v.GetString(ApiKeyField.FieldName) == "") &&
 		(v.GetString(UsernameField.FieldName) == "" || v.GetString(PasswordField.FieldName) == "") &&
 		(v.GetString(ScimClientIdField.FieldName) == "" || v.GetString(ScimClientSecretField.FieldName) == "") {
 		return fmt.Errorf("either token, api-key or username and password, or scim-client-id and scim-client-secret must be provided")

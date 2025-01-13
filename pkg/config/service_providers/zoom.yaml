@@ -1,7 +1,7 @@
 apiEndpoint: "https://api.zoom.us/scim2/"
 hasScimHeader: true
-auth: 
-  authType: "oauth2"
+auth:
+  authType: "apiKey"
   shouldObtainToken: true
   authUrl: "https://zoom.us/oauth/token"
   tokenPath: "access_token"

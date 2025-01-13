@@ -62,7 +62,6 @@ func getConnector(ctx context.Context, v *viper.Viper) (types.ConnectorServer, e
 	}
 
 	connectorConfig := scim.ConnectorConfig{
-		Token:            v.GetString(TokenField.FieldName),
 		Username:         v.GetString(UsernameField.FieldName),
 		Password:         v.GetString(PasswordField.FieldName),
 		ApiKey:           v.GetString(ApiKeyField.FieldName),

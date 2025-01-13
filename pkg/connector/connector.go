@@ -52,10 +52,10 @@ func New(ctx context.Context, scimConfig *scimConfig.SCIMConfig, connectorConfig
 		return nil, err
 	}
 
-	authToken := connectorConfig.Token
+	apiKey := connectorConfig.ApiKey
 	// If the token is not provided and the connector is configured to obtain it, request a new token.
 	if scimConfig.Auth.ShouldObtainToken {
-		authToken, err = scim.RequestAccessToken(ctx, scim.AuthVars{
+		apiKey, err = scim.RequestAccessToken(ctx, scim.AuthVars{
 			AuthUrl:         scimConfig.Auth.AuthUrl,
 			AccountId:       connectorConfig.AccountID,
 			ClientID:        connectorConfig.ScimClientID,
@@ -67,7 +67,7 @@ func New(ctx context.Context, scimConfig *scimConfig.SCIMConfig, connectorConfig
 		}
 	}
 
-	connectorConfig.Token = authToken
+	connectorConfig.ApiKey = apiKey
 
 	client, err := scim.NewClient(httpClient, *scimConfig, connectorConfig)
 	if err != nil {
