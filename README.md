@@ -7,12 +7,22 @@
 `baton-scim` is a generic connector for various SCIM service providers built using
 the [Baton SDK](https://github.com/conductorone/baton-sdk). It communicates with the SCIM API to sync data about users,
 groups and roles.
-Currently supported service providers:
 
-- miro
-- postman
-- slack
-- zoom
+# Supported service providers:
+
+### Miro
+
+### Postman
+
+### Slack
+
+```
+baton-scim --api-key=USER_OAUTH_TOKEN --service-provider=slack
+```
+
+### Zoom
+
+### Custom Provider
 
 In case service provider you want to sync your data from is missing in the current implementation, you can pass your own
 yaml configuration file. Examples of these configuration files can be found in `service_providers` folder in the
