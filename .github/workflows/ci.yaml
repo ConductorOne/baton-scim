@@ -58,8 +58,5 @@ jobs:
       - name: Build baton-scim
         run: go build ./cmd/baton-scim
 
-      - name: Run baton-scim
-        run: ./baton-scim
-
       - name: Sync SCIM Slack
         run: ./baton-scim --service-provider=slack
