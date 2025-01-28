@@ -1,6 +1,8 @@
 package scimconfig
 
 import (
+	"embed"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,6 +11,9 @@ import (
 	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v2"
 )
+
+//go:embed service_providers
+var serviceProviders embed.FS
 
 type SCIMConfig struct {
 	// The URL of the SCIM API endpoint
@@ -22,7 +27,7 @@ type SCIMConfig struct {
 	Provisioning  ProvisioningMapping `yaml:"provisioning" validate:"omitempty"`
 }
 
-// Mapping for the authentication configuration.
+// AuthOptions Mapping for the authentication configuration.
 type AuthOptions struct {
 	// Type of authentication to use
 	AuthType string `yaml:"authType" validate:"required,oneof=basic oauth2 apiKey"`
@@ -36,14 +41,14 @@ type AuthOptions struct {
 	TokenPath string `yaml:"tokenPath" validate:"required_if=ShouldObtainToken true"`
 }
 
-// Mapping for the pagination configuration.
+// PaginationMapping Mapping for the pagination configuration.
 type PaginationMapping struct {
 	TotalResults string `yaml:"totalResults" validate:"required"`
 	ItemsPerPage string `yaml:"itemsPerPage" validate:"required"`
 	StartIndex   string `yaml:"startIndex" validate:"required"`
 }
 
-// Mapping for the group configuration.
+// GroupMapping Mapping for the group configuration.
 type GroupMapping struct {
 	// Name of the ID field in the group object. (jsonpath)
 	ID string `yaml:"id" validate:"required"`
@@ -53,7 +58,7 @@ type GroupMapping struct {
 	Members MemberMapping `yaml:"members" validate:"omitempty"`
 }
 
-// Mapping for the members array in the group object.
+// MemberMapping Mapping for the members array in the group object.
 type MemberMapping struct {
 	// Name of the members field in the group object. (jsonpath)
 	Path string `yaml:"path" validate:"required"`
@@ -63,7 +68,7 @@ type MemberMapping struct {
 	DisplayName string `yaml:"displayName" validate:"omitempty"`
 }
 
-// Mapping for the user configuration.
+// UserMapping Mapping for the user configuration.
 type UserMapping struct {
 	// Name of the ID field in the user object. (jsonpath)
 	ID string `yaml:"id" validate:"required"`
@@ -87,7 +92,7 @@ type UserMapping struct {
 	UserGroup UserGroupMapping `yaml:"userGroup" validate:"required_if=HasGroupsOnUser true"`
 }
 
-// Mapping for the user group configuration.
+// UserGroupMapping Mapping for the user group configuration.
 type UserGroupMapping struct {
 	// Name of the Groups field in the user object. (jsonpath)
 	Path string `yaml:"path" validate:"required_if=HasGroupsOnUser true"`
@@ -97,7 +102,7 @@ type UserGroupMapping struct {
 	ID string `yaml:"id" validate:"omitempty"`
 }
 
-// Mapping for the role configuration.
+// RoleMapping Mapping for the role configuration.
 type RoleMapping struct {
 	// Name of the Roles field in the user object. (jsonpath)
 	Path string `yaml:"path" validate:"required"`
@@ -107,7 +112,7 @@ type RoleMapping struct {
 	Display string `yaml:"display" validate:"omitempty"`
 }
 
-// Mapping for the provisioning configuration.
+// ProvisioningMapping Mapping for the provisioning configuration.
 type ProvisioningMapping struct {
 	AddUserRole         PatchOperation `yaml:"addUserRole" validate:"omitempty"`
 	RemoveUserRole      PatchOperation `yaml:"removeUserRole" validate:"omitempty"`
@@ -115,7 +120,7 @@ type ProvisioningMapping struct {
 	RemoveUserFromGroup PatchOperation `yaml:"removeUserFromGroup" validate:"omitempty"`
 }
 
-// Group membership and User role provisioning are usually done with PATCH operations.
+// PatchOperation Group membership and User role provisioning are usually done with PATCH operations.
 type PatchOperation struct {
 	// Schemas array, always required 1 value
 	Schemas string `yaml:"schemas" validate:"required"`
@@ -127,27 +132,31 @@ type PatchOperation struct {
 	ValuePath string `yaml:"valuePath" validate:"required"`
 }
 
-func LoadConfig(filename string, serviceProvider string) (*SCIMConfig, error) {
-	var configFile string
-	switch {
-	case filename != "" && serviceProvider != "":
-		return nil, fmt.Errorf("only one of scim-config or service-provider must be provided")
-	case filename == "" && serviceProvider == "":
-		return nil, fmt.Errorf("either scim-config or service-provider must be provided")
-	case filename != "":
-		configFile = filename
-	case serviceProvider != "":
+func getConfigBytes(filename, serviceProvider, rawConfigValue string) ([]byte, error) {
+	if filename != "" {
+		return os.ReadFile(filename)
+	}
+
+	if serviceProvider != "" {
 		if !isSupportedServiceProvider(serviceProvider) {
 			return nil, fmt.Errorf("unsupported service provider: %s", serviceProvider)
 		}
-		configFile = fmt.Sprintf("pkg/config/service_providers/%s.yaml", serviceProvider)
-	default:
-		return nil, fmt.Errorf("unexpected error")
+
+		configFile := fmt.Sprintf("service_providers/%s.yaml", serviceProvider)
+		return serviceProviders.ReadFile(configFile)
 	}
 
-	buf, err := os.ReadFile(configFile)
+	if rawConfigValue != "" {
+		return []byte(rawConfigValue), nil
+	}
+
+	return nil, errors.New("must provide filename, serviceProvider or rawConfigValue")
+}
+
+func LoadConfig(filename, serviceProvider, rawConfigValue string) (*SCIMConfig, error) {
+	buf, err := getConfigBytes(filename, serviceProvider, rawConfigValue)
 	if err != nil {
-		return nil, fmt.Errorf("error reading config file: %w", err)
+		return nil, err
 	}
 
 	var config SCIMConfig
@@ -180,9 +189,7 @@ func isSupportedServiceProvider(serviceProvider string) bool {
 }
 
 func getServiceProviders() ([]string, error) {
-	configDir := "pkg/config/service_providers"
-
-	files, err := os.ReadDir(configDir)
+	files, err := serviceProviders.ReadDir("service_providers")
 	if err != nil {
 		return nil, fmt.Errorf("error reading config directory: %w", err)
 	}

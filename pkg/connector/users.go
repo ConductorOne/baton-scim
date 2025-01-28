@@ -66,14 +66,14 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 	users, nextPage, err := o.client.ListUsers(ctx, paginationOptions)
 	if err != nil {
 		annos := errorAnnotations(err)
-		return nil, "", annos, fmt.Errorf("error fetching users: %w", err)
+		return nil, "", annos, fmt.Errorf("baton-scim: error fetching users: %w", err)
 	}
 
 	var rv []*v2.Resource
 	for _, user := range users {
 		resource, err := userResource(user)
 		if err != nil {
-			return nil, "", nil, fmt.Errorf("error creating user resource: %w", err)
+			return nil, "", nil, fmt.Errorf("baton-scim: error creating user resource: %w", err)
 		}
 		rv = append(rv, resource)
 	}
@@ -110,7 +110,7 @@ func (o *userBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken 
 	for _, role := range user.Roles {
 		roleResource, err := roleResource(role)
 		if err != nil {
-			return nil, "", nil, fmt.Errorf("error creating role resource: %w", err)
+			return nil, "", nil, fmt.Errorf("baton-scim: error creating role resource: %w", err)
 		}
 
 		gr := grant.NewGrant(roleResource, roleMembership, resource)
@@ -124,7 +124,7 @@ func (o *userBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken 
 			if userGroup.ID == "" {
 				groups, _, err := o.client.ListGroups(ctx, scim.PaginationVars{Count: 1, StartIndex: 1}, scim.FilterOptions{Name: userGroup.DisplayName})
 				if err != nil {
-					return nil, "", nil, fmt.Errorf("error fetching group resource: %w", err)
+					return nil, "", nil, fmt.Errorf("baton-scim: error fetching group resource: %w", err)
 				}
 				group = groups[0]
 			} else {
@@ -132,7 +132,7 @@ func (o *userBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken 
 			}
 			groupResource, err := groupResource(group)
 			if err != nil {
-				return nil, "", nil, fmt.Errorf("error creating group resource: %w", err)
+				return nil, "", nil, fmt.Errorf("baton-scim: error creating group resource: %w", err)
 			}
 
 			gr := grant.NewGrant(groupResource, groupMembership, resource)
