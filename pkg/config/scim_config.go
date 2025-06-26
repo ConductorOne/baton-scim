@@ -78,8 +78,10 @@ type UserMapping struct {
 	FirstName string `yaml:"firstName" validate:"required"`
 	// Name of the LastName field in the user object. (jsonpath)
 	LastName string `yaml:"lastName" validate:"required"`
+	// SkipUserEmails allows the connector to not require Emails for the User. Valid in some specific platforms e.g. SAP SF.
+	SkipUserEmails bool `yaml:"skipUserEmails" validate:"boolean,omitempty"`
 	// JsonPath for primary email in case SCIM API has a primary field for the email
-	PrimaryEmail string `yaml:"primaryEmail" validate:"required"`
+	PrimaryEmail string `yaml:"primaryEmail" validate:"required_if=SkipUserEmails false"`
 	// JsonPath for the first email in case SCIM API has an array of emails without a primary field
 	FirstEmail string `yaml:"firstEmail"`
 	// Name of the Active field in the user object. (jsonpath)

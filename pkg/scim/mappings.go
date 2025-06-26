@@ -46,11 +46,13 @@ func MapUser(ctx context.Context, resource interface{}, config *scimconfig.UserM
 	}
 	user.LastName, _ = lastName.(string)
 
-	email, err := extractPrimaryOrFirstEmail(resource, config)
-	if err != nil {
-		return user, err
+	if config.SkipUserEmails == false {
+		email, err := extractPrimaryOrFirstEmail(resource, config)
+		if err != nil {
+			return user, err
+		}
+		user.Email = email
 	}
-	user.Email = email
 
 	userName, err := extractField(resource, config.Username)
 	if err != nil {
