@@ -12,7 +12,7 @@ func TestServiceProviders(t *testing.T) {
 	providers, err := getServiceProviders()
 
 	require.NoError(t, err)
-	require.Equal(t, len(providers), 4)
+	require.Equal(t, len(providers), 5)
 
 	// Test the first provider
 
