@@ -14,6 +14,8 @@ import (
 	"github.com/PaesslerAG/jsonpath"
 	scimConfig "github.com/conductorone/baton-scim/pkg/config"
 	"github.com/conductorone/baton-sdk/pkg/uhttp"
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"go.uber.org/zap"
 )
 
 const (
@@ -473,14 +475,39 @@ func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, pa
 	if err != nil {
 		return nil, err
 	}
+	logger := ctxzap.Extract(ctx)
+	requestOptions := []uhttp.RequestOption{
+		uhttp.WithJSONBody(payload),
+		uhttp.WithAcceptJSONHeader(),
+	}
 
-	var authHeader uhttp.RequestOption
-	var acceptHeader uhttp.RequestOption
-
+	// Apply SCIM header if indicated.
 	if c.config.HasScimHeader {
-		acceptHeader = uhttp.WithHeader("Accept", "application/scim+json")
-	} else {
-		acceptHeader = uhttp.WithAcceptJSONHeader()
+		requestOptions = append(requestOptions, uhttp.WithHeader("Accept", "application/scim+json"))
+	}
+
+	// Add request-specific headers
+	requestDefaults := c.config.RequestDefaults
+	if requestDefaults != nil {
+		// Adds custom headers
+		if requestDefaults.Headers != nil {
+			logger.Debug("custom headers found", zap.Int("headers", len(requestDefaults.Headers)))
+			for k, v := range requestDefaults.Headers {
+				logger.Debug("adding custom header", zap.String("header key", k), zap.String("header value", v))
+				requestOptions = append(requestOptions, uhttp.WithHeader(k, v))
+			}
+		}
+
+		// Adds custom Query params
+		if requestDefaults.QueryParams != nil {
+			logger.Debug("custom query params found", zap.Int("query params", len(requestDefaults.QueryParams)))
+			q := u.Query()
+			for k, v := range requestDefaults.QueryParams {
+				logger.Debug("adding custom query param", zap.String("q param key", k), zap.String("q param value", v))
+				q.Set(k, v)
+			}
+			u.RawQuery = q.Encode()
+		}
 	}
 
 	switch c.config.Auth.AuthType {
@@ -492,7 +519,7 @@ func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, pa
 		if c.config.Auth.ApiKeyPrefix != "" {
 			apiKeyHeader = fmt.Sprintf("%s %s", c.config.Auth.ApiKeyPrefix, c.apiKey)
 		}
-		authHeader = uhttp.WithHeader("Authorization", apiKeyHeader)
+		requestOptions = append(requestOptions, uhttp.WithHeader("Authorization", apiKeyHeader))
 	case basic:
 		if c.username == "" || c.password == "" {
 			return nil, fmt.Errorf("missing username or password")
@@ -505,10 +532,7 @@ func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, pa
 		ctx,
 		method,
 		u,
-		uhttp.WithJSONBody(payload),
-		uhttp.WithAcceptJSONHeader(),
-		acceptHeader,
-		authHeader,
+		requestOptions...,
 	)
 	if err != nil {
 		return nil, err
@@ -584,16 +608,18 @@ func RequestAccessToken(ctx context.Context, vars AuthVars, tokenPath string) (s
 		return "", err
 	}
 
-	var payload AuthBody
+	var reqOpts []uhttp.RequestOption
+
 	// Zoom requires account_id for token request
 	if vars.AccountId != "" && vars.ServiceProvider == zoom {
-		payload = AuthBody{
+		payload := AuthBody{
 			GrantType: "account_credentials",
 			AccountID: vars.AccountId,
 		}
+		reqOpts = append(reqOpts, uhttp.WithAcceptJSONHeader(), uhttp.WithContentTypeJSONHeader(), uhttp.WithJSONBody(payload))
 	}
 
-	req, err := client.NewRequest(ctx, http.MethodPost, u, uhttp.WithJSONBody(payload), uhttp.WithAcceptJSONHeader(), uhttp.WithContentTypeJSONHeader())
+	req, err := client.NewRequest(ctx, http.MethodPost, u, reqOpts...)
 	if err != nil {
 		return "", fmt.Errorf("error creating request: %w", err)
 	}

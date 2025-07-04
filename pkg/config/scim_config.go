@@ -19,12 +19,13 @@ type SCIMConfig struct {
 	// The URL of the SCIM API endpoint
 	ApiEndpoint string `yaml:"apiEndpoint" validate:"required,url"`
 	// Some providers require a specific Accept header when working with SCIM
-	HasScimHeader bool                `yaml:"hasScimHeader" validate:"boolean"`
-	Auth          AuthOptions         `yaml:"auth" validate:"required"`
-	User          UserMapping         `yaml:"user" validate:"required"`
-	Group         GroupMapping        `yaml:"group" validate:"required"`
-	Pagination    PaginationMapping   `yaml:"pagination" validate:"required"`
-	Provisioning  ProvisioningMapping `yaml:"provisioning" validate:"omitempty"`
+	HasScimHeader   bool                  `yaml:"hasScimHeader" validate:"boolean"`
+	Auth            AuthOptions           `yaml:"auth" validate:"required"`
+	RequestDefaults *DefaultRequestConfig `yaml:"request_defaults,omitempty" json:"request_defaults,omitempty" validate:"omitempty"`
+	User            UserMapping           `yaml:"user" validate:"required"`
+	Group           GroupMapping          `yaml:"group" validate:"required"`
+	Pagination      PaginationMapping     `yaml:"pagination" validate:"required"`
+	Provisioning    ProvisioningMapping   `yaml:"provisioning" validate:"omitempty"`
 }
 
 // AuthOptions Mapping for the authentication configuration.
@@ -39,6 +40,15 @@ type AuthOptions struct {
 	AuthUrl string `yaml:"authUrl" validate:"required_if=ShouldObtainToken true"`
 	// Name of the token field in the response. (jsonpath)
 	TokenPath string `yaml:"tokenPath" validate:"required_if=ShouldObtainToken true"`
+}
+
+// DefaultRequestConfig defines the HTTP request configuration. ATM supports custom headers and custom query parameters.
+type DefaultRequestConfig struct {
+	// Headers contains request-specific headers.
+	Headers map[string]string `yaml:"headers,omitempty" json:"headers,omitempty" validate:"omitempty,dive,keys,required,endkeys"`
+
+	// QueryParams contains query parameters to include in the request.
+	QueryParams map[string]string `yaml:"query_params,omitempty" json:"query_params,omitempty" validate:"omitempty,dive,keys,required,endkeys"`
 }
 
 // PaginationMapping Mapping for the pagination configuration.
