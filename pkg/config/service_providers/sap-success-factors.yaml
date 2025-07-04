@@ -1,0 +1,39 @@
+apiEndpoint: "https://${SAP_SF_API_SERVER}/successfactorsfoundation/rest/iam/scim/v2" # Example for sandbox: "https://sandbox.api.sap.com/successfactorsfoundation/rest/iam/scim/v2"
+hasScimHeader: true
+auth:
+  authType: "apiKey"
+  apiKeyPrefix: "Bearer"
+  shouldObtainToken: true
+  authUrl: "REPLACE_WITH_PROD_AUTH_URL" # Example for sandbox: "https://sandbox.api.sap.com/oauth/token?grant_type=client_credentials"
+  tokenPath: "access_token"
+user:
+  id: "id"
+  userName: "userName"
+  displayName: "displayName"
+  firstName: "name.givenName"
+  lastName: "name.familyName"
+  active: "active"
+  skipUserEmails: true
+  hasGroupsOnUser: true
+  userGroup:
+    id: "value"
+    name: "display"
+    path: "groups"
+group:
+  id: "value"
+  displayName: "display"
+pagination:
+  totalResults: "totalResults"
+  itemsPerPage: "itemsPerPage"
+  startIndex: "startIndex"
+provisioning:
+  addUserToGroup:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "add"
+    path: "members"
+    valuePath: "value"
+  removeUserFromGroup:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "remove"
+    path: "members"
+    valuePath: "value"
