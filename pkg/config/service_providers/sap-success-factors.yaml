@@ -24,7 +24,7 @@ group:
   displayName: "display"
 pagination:
   totalResults: "totalResults"
-  itemsPerPage: "itemsPerPage"
+  itemsPerPage: "count"
   startIndex: "startIndex"
 provisioning:
   addUserToGroup:
