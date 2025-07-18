@@ -21,7 +21,7 @@ type SCIMConfig struct {
 	// Some providers require a specific Accept header when working with SCIM
 	HasScimHeader   bool                  `yaml:"hasScimHeader" validate:"boolean"`
 	Auth            AuthOptions           `yaml:"auth" validate:"required"`
-	RequestDefaults *DefaultRequestConfig `yaml:"request_defaults,omitempty" json:"request_defaults,omitempty" validate:"omitempty"`
+	RequestDefaults *DefaultRequestConfig `yaml:"requestDefaults,omitempty" json:"request_defaults,omitempty" validate:"omitempty"`
 	User            UserMapping           `yaml:"user" validate:"required"`
 	Group           GroupMapping          `yaml:"group" validate:"required"`
 	Pagination      PaginationMapping     `yaml:"pagination" validate:"required"`
@@ -31,7 +31,7 @@ type SCIMConfig struct {
 // AuthOptions Mapping for the authentication configuration.
 type AuthOptions struct {
 	// Type of authentication to use
-	AuthType string `yaml:"authType" validate:"required,oneof=basic oauth2 apiKey"`
+	AuthType string `yaml:"authType" validate:"required,oneof=basic oauth2 apiKey basicTokenSource"`
 	// ApiKey prefix, if using an API key
 	ApiKeyPrefix string `yaml:"apiKeyPrefix" validate:"omitempty"`
 	// If there is no token provided beforehand and this is set to 'true' the connector will obtain one
@@ -40,6 +40,11 @@ type AuthOptions struct {
 	AuthUrl string `yaml:"authUrl" validate:"required_if=ShouldObtainToken true"`
 	// Name of the token field in the response. (jsonpath)
 	TokenPath string `yaml:"tokenPath" validate:"required_if=ShouldObtainToken true"`
+
+	// WithCustomTokenRequest indicates if the token will be requested and maintained with the custom workflow and custom request options.
+	WithCustomTokenRequest string `yaml:"withCustomTokenRequest" validate:"omitempty"`
+	// TokenRequestConfig defines the HTTP request configuration for requesting the Token. ATM supports custom headers and custom query parameters.
+	TokenRequestConfig *DefaultRequestConfig `yaml:"tokenRequestDefaults,omitempty" json:"request_defaults,omitempty" validate:"required_if=WithCustomTokenRequest true"`
 }
 
 // DefaultRequestConfig defines the HTTP request configuration. ATM supports custom headers and custom query parameters.
@@ -48,7 +53,7 @@ type DefaultRequestConfig struct {
 	Headers map[string]string `yaml:"headers,omitempty" json:"headers,omitempty" validate:"omitempty,dive,keys,required,endkeys"`
 
 	// QueryParams contains query parameters to include in the request.
-	QueryParams map[string]string `yaml:"query_params,omitempty" json:"query_params,omitempty" validate:"omitempty,dive,keys,required,endkeys"`
+	QueryParams map[string]string `yaml:"queryParams,omitempty" json:"query_params,omitempty" validate:"omitempty,dive,keys,required,endkeys"`
 }
 
 // PaginationMapping Mapping for the pagination configuration.

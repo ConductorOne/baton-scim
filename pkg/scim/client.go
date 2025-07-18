@@ -16,6 +16,7 @@ import (
 	"github.com/conductorone/baton-sdk/pkg/uhttp"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.uber.org/zap"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -30,8 +31,9 @@ const (
 	currentResource = "$"
 
 	// Auth types.
-	apiKey = "apiKey"
-	basic  = "basic"
+	apiKey           = "apiKey"
+	basic            = "basic"
+	basicTokenSource = "basicTokenSource"
 )
 
 type Client struct {
@@ -44,8 +46,15 @@ type Client struct {
 	scimClientID     string
 	scimClientSecret string
 	accountID        string
+	tokenSource      oauth2.TokenSource
 }
 
+func (c *Client) InspectTS() oauth2.TokenSource {
+	//TODO: DELETE logger like.
+	return c.tokenSource
+}
+
+// ConnectorConfig contains the value of the connector flags.
 type ConnectorConfig struct {
 	ScimConfigFile   string
 	ServiceProvider  string
@@ -108,8 +117,8 @@ func (r *RateLimitError) Error() string {
 	return fmt.Sprintf("rate limited, retry after: %s", r.RetryAfter.String())
 }
 
-func NewClient(httpClient *http.Client, config scimConfig.SCIMConfig, connectorConfig *ConnectorConfig) (*Client, error) {
-	return &Client{
+func NewClient(ctx context.Context, httpClient *http.Client, config scimConfig.SCIMConfig, connectorConfig *ConnectorConfig) (*Client, error) {
+	newClient := &Client{
 		httpClient:       uhttp.NewBaseHttpClient(httpClient),
 		config:           &config,
 		serviceProvider:  connectorConfig.ServiceProvider,
@@ -119,7 +128,28 @@ func NewClient(httpClient *http.Client, config scimConfig.SCIMConfig, connectorC
 		scimClientID:     connectorConfig.ScimClientID,
 		scimClientSecret: connectorConfig.ScimClientSecret,
 		accountID:        connectorConfig.AccountID,
-	}, nil
+	}
+
+	var customHeaders, customQueryParams map[string]string
+	if config.Auth.TokenRequestConfig != nil {
+		customHeaders = config.Auth.TokenRequestConfig.Headers
+		customQueryParams = config.Auth.TokenRequestConfig.QueryParams
+	}
+
+	if config.Auth.AuthType == basicTokenSource {
+		newClient.tokenSource = oauth2.ReuseTokenSource(nil, &BasicTokenSource{
+			Ctx:          ctx,
+			HTTPClient:   uhttp.NewBaseHttpClient(httpClient),
+			TokenURL:     config.Auth.AuthUrl,
+			ClientID:     connectorConfig.ScimClientID,
+			ClientSecret: connectorConfig.ScimClientSecret,
+
+			CustomHeaders:     customHeaders,
+			CustomQueryParams: customQueryParams,
+		})
+	}
+
+	return newClient, nil
 }
 
 func (c *Client) ListUsers(ctx context.Context, pagination PaginationVars) ([]User, Token, error) {
@@ -520,10 +550,29 @@ func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, pa
 			apiKeyHeader = fmt.Sprintf("%s %s", c.config.Auth.ApiKeyPrefix, c.apiKey)
 		}
 		requestOptions = append(requestOptions, uhttp.WithHeader("Authorization", apiKeyHeader))
+
 	case basic:
 		if c.username == "" || c.password == "" {
 			return nil, fmt.Errorf("missing username or password")
 		}
+
+	case basicTokenSource:
+		if c.tokenSource == nil {
+			return nil, fmt.Errorf("missing basic token source on the client")
+		}
+
+		token, err := c.tokenSource.Token()
+		if err != nil {
+			return nil, err
+		}
+
+		tokenType := "Bearer"
+		if c.config.Auth.ApiKeyPrefix != "" {
+			tokenType = c.config.Auth.ApiKeyPrefix
+		}
+		authHeader := fmt.Sprintf("%s %s", tokenType, token.AccessToken)
+		requestOptions = append(requestOptions, uhttp.WithHeader("Authorization", authHeader))
+
 	default:
 		return nil, fmt.Errorf("unsupported auth type: %s", c.config.Auth.AuthType)
 	}
