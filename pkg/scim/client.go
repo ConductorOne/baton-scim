@@ -31,9 +31,9 @@ const (
 	currentResource = "$"
 
 	// Auth types.
-	apiKey           = "apiKey"
-	basic            = "basic"
-	basicTokenSource = "basicTokenSource"
+	apiKey            = "apiKey"
+	basic             = "basic"
+	customTokenSource = "customTokenSource"
 )
 
 type Client struct {
@@ -47,11 +47,6 @@ type Client struct {
 	scimClientSecret string
 	accountID        string
 	tokenSource      oauth2.TokenSource
-}
-
-func (c *Client) InspectTS() oauth2.TokenSource {
-	//TODO: DELETE logger like.
-	return c.tokenSource
 }
 
 // ConnectorConfig contains the value of the connector flags.
@@ -130,22 +125,28 @@ func NewClient(ctx context.Context, httpClient *http.Client, config scimConfig.S
 		accountID:        connectorConfig.AccountID,
 	}
 
-	var customHeaders, customQueryParams map[string]string
+	var customHeaders, customQueryParams, customFormBodyValues map[string]string
+	var customContentType string
+
 	if config.Auth.TokenRequestConfig != nil {
 		customHeaders = config.Auth.TokenRequestConfig.Headers
 		customQueryParams = config.Auth.TokenRequestConfig.QueryParams
+		customFormBodyValues = config.Auth.TokenRequestConfig.FormBodyValues
+		customContentType = config.Auth.TokenRequestConfig.ContentType
 	}
 
-	if config.Auth.AuthType == basicTokenSource {
-		newClient.tokenSource = oauth2.ReuseTokenSource(nil, &BasicTokenSource{
+	if config.Auth.AuthType == customTokenSource {
+		newClient.tokenSource = oauth2.ReuseTokenSource(nil, &CustomTokenSource{
 			Ctx:          ctx,
 			HTTPClient:   uhttp.NewBaseHttpClient(httpClient),
 			TokenURL:     config.Auth.AuthUrl,
 			ClientID:     connectorConfig.ScimClientID,
 			ClientSecret: connectorConfig.ScimClientSecret,
 
-			CustomHeaders:     customHeaders,
-			CustomQueryParams: customQueryParams,
+			ContentType:          customContentType,
+			CustomHeaders:        customHeaders,
+			CustomQueryParams:    customQueryParams,
+			CustomFormBodyValues: customFormBodyValues,
 		})
 	}
 
@@ -556,9 +557,9 @@ func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, pa
 			return nil, fmt.Errorf("missing username or password")
 		}
 
-	case basicTokenSource:
+	case customTokenSource:
 		if c.tokenSource == nil {
-			return nil, fmt.Errorf("missing basic token source on the client")
+			return nil, fmt.Errorf("missing custom token source on the client")
 		}
 
 		token, err := c.tokenSource.Token()
@@ -627,6 +628,8 @@ func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, pa
 		if err != nil {
 			return nil, fmt.Errorf("error parsing retry after header: %w", err)
 		}
+
+		// TODO: Analyze - Does the rate limit gets handled by the SDK when returning this?
 		return nil, &RateLimitError{RetryAfter: time.Second * time.Duration(retryAfterSec)}
 	}
 

@@ -31,7 +31,7 @@ type SCIMConfig struct {
 // AuthOptions Mapping for the authentication configuration.
 type AuthOptions struct {
 	// Type of authentication to use
-	AuthType string `yaml:"authType" validate:"required,oneof=basic oauth2 apiKey basicTokenSource"`
+	AuthType string `yaml:"authType" validate:"required,oneof=basic oauth2 apiKey customTokenSource"`
 	// ApiKey prefix, if using an API key
 	ApiKeyPrefix string `yaml:"apiKeyPrefix" validate:"omitempty"`
 	// If there is no token provided beforehand and this is set to 'true' the connector will obtain one
@@ -47,13 +47,17 @@ type AuthOptions struct {
 	TokenRequestConfig *DefaultRequestConfig `yaml:"tokenRequestDefaults,omitempty" json:"request_defaults,omitempty" validate:"required_if=WithCustomTokenRequest true"`
 }
 
-// DefaultRequestConfig defines the HTTP request configuration. ATM supports custom headers and custom query parameters.
+// DefaultRequestConfig defines the HTTP request configuration. ATM supports custom content type, custom headers, custom query parameters and custom form body.
 type DefaultRequestConfig struct {
+	ContentType string `yaml:"contentType,omitempty" json:"content_type,omitempty" validate:"omitempty"`
+
 	// Headers contains request-specific headers.
 	Headers map[string]string `yaml:"headers,omitempty" json:"headers,omitempty" validate:"omitempty,dive,keys,required,endkeys"`
 
 	// QueryParams contains query parameters to include in the request.
 	QueryParams map[string]string `yaml:"queryParams,omitempty" json:"query_params,omitempty" validate:"omitempty,dive,keys,required,endkeys"`
+
+	FormBodyValues map[string]string `yaml:"formBodyValues,omitempty" json:"form_body_values,omitempty" validate:"omitempty,dive,keys,required,endkeys"`
 }
 
 // PaginationMapping Mapping for the pagination configuration.
