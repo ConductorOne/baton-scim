@@ -48,6 +48,8 @@ jobs:
       - go-test
     env:
       BATON_API_KEY: ${{ secrets.USER_SLACK_OAUTH_TOKEN }}
+      BATON_SERVICE_PROVIDER: slack
+      BATON_LOG_LEVEL: debug
     steps:
       - name: Install Go
         uses: actions/setup-go@v4
@@ -57,11 +59,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install baton
-        run: ./scripts/get-baton.sh && mv baton /usr/local/bin
-
       - name: Build baton-scim
         run: go build ./cmd/baton-scim
 
+      - name: Test grant/revoke
+        uses: ConductorOne/github-workflows/actions/sync-test@v2
+        with:
+          connector: ./baton-scim
+          baton-entitlement: group:S06MUM6GEPM:member
+          baton-principal: user:U06R7AC1BM1
+          baton-principal-type: user
       - name: Sync SCIM Slack
         run: ./baton-scim --service-provider=slack
