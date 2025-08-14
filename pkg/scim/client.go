@@ -179,7 +179,7 @@ func (c *Client) ListUsers(ctx context.Context, pagination PaginationVars) ([]Us
 		return nil, Token{}, fmt.Errorf("error fetching SCIM users: %w", err)
 	}
 
-	var jsonData interface{}
+	var jsonData any
 	err = json.Unmarshal(data, &jsonData)
 	if err != nil {
 		return nil, Token{}, fmt.Errorf("error unmarshaling user data: %w", err)
@@ -508,8 +508,10 @@ func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, pa
 	}
 	logger := ctxzap.Extract(ctx)
 	requestOptions := []uhttp.RequestOption{
-		uhttp.WithJSONBody(payload),
 		uhttp.WithAcceptJSONHeader(),
+	}
+	if payload != nil {
+		requestOptions = append(requestOptions, uhttp.WithJSONBody(payload))
 	}
 
 	// Apply SCIM header if indicated.
