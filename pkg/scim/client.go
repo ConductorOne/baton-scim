@@ -384,6 +384,7 @@ func (c *Client) AddUserToGroup(ctx context.Context, groupID string, userID stri
 
 // RemoveUserFromGroup patches a group by removing a user from it.
 func (c *Client) RemoveUserFromGroup(ctx context.Context, groupID string, userID string) error {
+	l := ctxzap.Extract(ctx)
 	operation := c.config.Provisioning.RemoveUserFromGroup
 	// need to fetch group to get existing members
 	group, err := c.GetGroup(ctx, groupID)
@@ -391,11 +392,20 @@ func (c *Client) RemoveUserFromGroup(ctx context.Context, groupID string, userID
 		return fmt.Errorf("error fetching group: %w", err)
 	}
 
+	found := false
 	var result []map[string]string
 	for _, member := range group.Members {
-		if member.ID != userID {
+		if member.ID == userID {
+			found = true
+		} else {
 			result = append(result, map[string]string{operation.ValuePath: member.ID})
 		}
+	}
+
+	if !found {
+		// User isn't a member, so don't try to remove them.
+		l.Debug("user is not a member of group, skipping removal", zap.String("group_id", groupID), zap.String("user_id", userID))
+		return nil
 	}
 
 	requestBody := PatchOp{
@@ -613,11 +623,12 @@ func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, pa
 	}
 
 	resp, err := c.httpClient.Do(req)
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return nil, err
 	}
-
-	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

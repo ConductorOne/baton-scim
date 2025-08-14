@@ -1,4 +1,4 @@
-apiEndpoint: "https://api.slack.com/scim/v1/"
+apiEndpoint: "https://api.slack.com/scim/v2/"
 hasScimHeader: false
 auth:
   authType: "apiKey"
