@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func extractField(jsonData interface{}, path string) (interface{}, error) {
+func extractField(jsonData any, path string) (any, error) {
 	if path == "" {
 		return nil, nil
 	}
@@ -23,7 +23,7 @@ func extractField(jsonData interface{}, path string) (interface{}, error) {
 	return res, nil
 }
 
-func MapUser(ctx context.Context, resource interface{}, config *scimconfig.UserMapping) (User, error) {
+func MapUser(ctx context.Context, resource any, config *scimconfig.UserMapping) (User, error) {
 	l := ctxzap.Extract(ctx)
 	var user User
 
@@ -88,7 +88,7 @@ func MapUser(ctx context.Context, resource interface{}, config *scimconfig.UserM
 			user.Roles = append(user.Roles, r)
 		}
 	} else {
-		if rolesSlice, ok := roles.([]interface{}); ok {
+		if rolesSlice, ok := roles.([]any); ok {
 			for _, role := range rolesSlice {
 				r, err := extractRoles(role, config)
 				if err != nil {
@@ -121,7 +121,7 @@ func MapUser(ctx context.Context, resource interface{}, config *scimconfig.UserM
 				user.Groups = append(user.Groups, g)
 			}
 		} else {
-			if groupsSlice, ok := groups.([]interface{}); ok {
+			if groupsSlice, ok := groups.([]any); ok {
 				for _, group := range groupsSlice {
 					g, err := extractGroups(group, &config.UserGroup)
 					if err != nil {
@@ -140,7 +140,7 @@ func MapUser(ctx context.Context, resource interface{}, config *scimconfig.UserM
 	return user, nil
 }
 
-func MapGroup(resource interface{}, config *scimconfig.GroupMapping) (Group, error) {
+func MapGroup(resource any, config *scimconfig.GroupMapping) (Group, error) {
 	var group Group
 
 	id, err := extractField(resource, config.ID)
@@ -160,7 +160,7 @@ func MapGroup(resource interface{}, config *scimconfig.GroupMapping) (Group, err
 		return group, err
 	}
 
-	if membersSlice, ok := members.([]interface{}); ok {
+	if membersSlice, ok := members.([]any); ok {
 		for _, member := range membersSlice {
 			var m Member
 
@@ -185,7 +185,7 @@ func MapGroup(resource interface{}, config *scimconfig.GroupMapping) (Group, err
 }
 
 func MapPagination(data []byte, config *scimconfig.PaginationMapping) (Pagination, error) {
-	var jsonData interface{}
+	var jsonData any
 	err := json.Unmarshal(data, &jsonData)
 	if err != nil {
 		return Pagination{}, fmt.Errorf("unmarshaling data: %w", err)
@@ -211,10 +211,10 @@ func MapPagination(data []byte, config *scimconfig.PaginationMapping) (Paginatio
 	}, nil
 }
 
-func extractPrimaryOrFirstEmail(jsonData interface{}, config *scimconfig.UserMapping) (string, error) {
+func extractPrimaryOrFirstEmail(jsonData any, config *scimconfig.UserMapping) (string, error) {
 	primaryEmail, err := jsonpath.Get(config.PrimaryEmail, jsonData)
 	if err == nil {
-		if emailList, ok := primaryEmail.([]interface{}); ok && len(emailList) > 0 {
+		if emailList, ok := primaryEmail.([]any); ok && len(emailList) > 0 {
 			if email, ok := emailList[0].(string); ok {
 				return email, nil
 			}
@@ -233,7 +233,7 @@ func extractPrimaryOrFirstEmail(jsonData interface{}, config *scimconfig.UserMap
 	return "", fmt.Errorf("no valid email found")
 }
 
-func extractRoles(role interface{}, config *scimconfig.UserMapping) (Role, error) {
+func extractRoles(role any, config *scimconfig.UserMapping) (Role, error) {
 	var r Role
 	roleName, err := extractField(role, config.Roles.Name)
 	if err != nil {
@@ -253,7 +253,7 @@ func extractRoles(role interface{}, config *scimconfig.UserMapping) (Role, error
 	return r, nil
 }
 
-func extractGroups(group interface{}, config *scimconfig.UserGroupMapping) (Group, error) {
+func extractGroups(group any, config *scimconfig.UserGroupMapping) (Group, error) {
 	var g Group
 
 	id, err := extractField(group, config.ID)

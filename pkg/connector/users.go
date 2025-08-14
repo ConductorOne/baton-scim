@@ -27,7 +27,7 @@ func (o *userBuilder) ResourceType(ctx context.Context) *v2.ResourceType {
 // Create a new connector resource for a scim user.
 func userResource(user scim.User) (*v2.Resource, error) {
 	var userTraitOptions []resource.UserTraitOption
-	profile := map[string]interface{}{
+	profile := map[string]any{
 		"user_id":    user.ID,
 		"first_name": user.FirstName,
 		"last_name":  user.LastName,

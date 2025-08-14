@@ -39,7 +39,7 @@ func roleResource(role scim.Role) (*v2.Resource, error) {
 	}
 
 	roleId := strcase.ToSnake(roleName)
-	profile := map[string]interface{}{
+	profile := map[string]any{
 		"role_id":   roleId,
 		"role_name": roleName,
 	}

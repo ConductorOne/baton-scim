@@ -81,9 +81,9 @@ type PatchOp struct {
 }
 
 type Operation struct {
-	Op    string      `json:"op"`
-	Path  string      `json:"path"`
-	Value interface{} `json:"value,omitempty"`
+	Op    string `json:"op"`
+	Path  string `json:"path"`
+	Value any    `json:"value,omitempty"`
 }
 
 type AuthVars struct {
@@ -190,7 +190,7 @@ func (c *Client) ListUsers(ctx context.Context, pagination PaginationVars) ([]Us
 		return nil, Token{}, fmt.Errorf("error extracting user resources: %w", err)
 	}
 
-	resourceArray, ok := resources.([]interface{})
+	resourceArray, ok := resources.([]any)
 	if !ok {
 		return nil, Token{}, fmt.Errorf("invalid resource format")
 	}
@@ -233,7 +233,7 @@ func (c *Client) GetUser(ctx context.Context, userID string) (User, error) {
 		return User{}, fmt.Errorf("error fetching SCIM user details: %w", err)
 	}
 
-	var jsonData interface{}
+	var jsonData any
 	err = json.Unmarshal(data, &jsonData)
 	if err != nil {
 		return User{}, fmt.Errorf("error unmarshaling user data: %w", err)
@@ -279,7 +279,7 @@ func (c *Client) ListGroups(ctx context.Context, pagination PaginationVars, filt
 		return nil, Token{}, fmt.Errorf("error fetching SCIM groups: %w", err)
 	}
 
-	var jsonData interface{}
+	var jsonData any
 	err = json.Unmarshal(data, &jsonData)
 	if err != nil {
 		return nil, Token{}, fmt.Errorf("error unmarshaling groups data: %w", err)
@@ -290,7 +290,7 @@ func (c *Client) ListGroups(ctx context.Context, pagination PaginationVars, filt
 		return nil, Token{}, fmt.Errorf("error extracting group resources: %w", err)
 	}
 
-	resourceArray, ok := resources.([]interface{})
+	resourceArray, ok := resources.([]any)
 	if !ok {
 		return nil, Token{}, fmt.Errorf("invalid resource format")
 	}
@@ -333,7 +333,7 @@ func (c *Client) GetGroup(ctx context.Context, groupID string) (Group, error) {
 		return Group{}, fmt.Errorf("error fetching SCIM group details: %w", err)
 	}
 
-	var jsonData interface{}
+	var jsonData any
 	err = json.Unmarshal(data, &jsonData)
 	if err != nil {
 		return Group{}, fmt.Errorf("error unmarshaling group data: %w", err)
@@ -428,7 +428,7 @@ func (c *Client) RemoveUserFromGroup(ctx context.Context, groupID string, userID
 func (c *Client) AddUserRole(ctx context.Context, roleName string, userID string) error {
 	operation := c.config.Provisioning.AddUserRole
 	method := http.MethodPatch
-	var requestBody interface{}
+	var requestBody any
 	// zoom has a different schema for adding/removing roles
 	if c.serviceProvider == zoom {
 		requestBody = PutOp{
@@ -468,7 +468,7 @@ func (c *Client) AddUserRole(ctx context.Context, roleName string, userID string
 func (c *Client) RevokeUserRole(ctx context.Context, roleName string, userID string) error {
 	operation := c.config.Provisioning.RemoveUserRole
 	method := http.MethodPatch
-	var requestBody interface{}
+	var requestBody any
 	if c.serviceProvider == zoom {
 		method = http.MethodPut
 		requestBody = PutOp{
@@ -501,7 +501,7 @@ func (c *Client) RevokeUserRole(ctx context.Context, roleName string, userID str
 	return nil
 }
 
-func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, paginationVars PaginationVars, payload interface{}, filters FilterOptions) ([]byte, error) {
+func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, paginationVars PaginationVars, payload any, filters FilterOptions) ([]byte, error) {
 	u, err := url.Parse(reqUrl)
 	if err != nil {
 		return nil, err
@@ -692,7 +692,7 @@ func RequestAccessToken(ctx context.Context, vars AuthVars, tokenPath string) (s
 		return "", fmt.Errorf("error reading auth response: %w", err)
 	}
 
-	var jsonData interface{}
+	var jsonData any
 	err = json.Unmarshal(body, &jsonData)
 	if err != nil {
 		return "", fmt.Errorf("error unmarshaling auth data: %w", err)
