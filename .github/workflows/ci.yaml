@@ -67,7 +67,7 @@ jobs:
         with:
           connector: ./baton-scim
           baton-entitlement: group:S06MUM6GEPM:member
-          baton-principal: user:U06R7AC1BM1
+          baton-principal: U06R7AC1BM1
           baton-principal-type: user
       - name: Sync SCIM Slack
         run: ./baton-scim --service-provider=slack
