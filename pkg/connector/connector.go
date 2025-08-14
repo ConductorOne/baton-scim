@@ -52,10 +52,14 @@ func New(ctx context.Context, scimConfig *scimConfig.SCIMConfig, connectorConfig
 		return nil, err
 	}
 
-	apiKey := connectorConfig.ApiKey
+	// TODO: Doubt - Is this 'ShouldObtainToken' only implemented because of Zoom?
+	//  For connectors with OAuth, we kinda always need to obtain a token the first time.
+	//  As also we need to maintain them requesting another one once it expires.
+	//  Why not implement TokenSource?
+
 	// If the token is not provided and the connector is configured to obtain it, request a new token.
 	if scimConfig.Auth.ShouldObtainToken {
-		apiKey, err = scim.RequestAccessToken(ctx, scim.AuthVars{
+		apiKey, err := scim.RequestAccessToken(ctx, scim.AuthVars{
 			AuthUrl:         scimConfig.Auth.AuthUrl,
 			AccountId:       connectorConfig.AccountID,
 			ClientID:        connectorConfig.ScimClientID,
@@ -65,11 +69,11 @@ func New(ctx context.Context, scimConfig *scimConfig.SCIMConfig, connectorConfig
 		if err != nil {
 			return nil, fmt.Errorf("baton-scim: failed to get token: %w", err)
 		}
+
+		connectorConfig.ApiKey = apiKey
 	}
 
-	connectorConfig.ApiKey = apiKey
-
-	client, err := scim.NewClient(httpClient, *scimConfig, connectorConfig)
+	client, err := scim.NewClient(ctx, httpClient, *scimConfig, connectorConfig)
 	if err != nil {
 		return nil, fmt.Errorf("baton-scim: error creating client: %w", err)
 	}

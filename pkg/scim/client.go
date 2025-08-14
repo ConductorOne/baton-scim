@@ -14,6 +14,9 @@ import (
 	"github.com/PaesslerAG/jsonpath"
 	scimConfig "github.com/conductorone/baton-scim/pkg/config"
 	"github.com/conductorone/baton-sdk/pkg/uhttp"
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"go.uber.org/zap"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -28,8 +31,9 @@ const (
 	currentResource = "$"
 
 	// Auth types.
-	apiKey = "apiKey"
-	basic  = "basic"
+	apiKey            = "apiKey"
+	basic             = "basic"
+	customTokenSource = "customTokenSource"
 )
 
 type Client struct {
@@ -42,8 +46,10 @@ type Client struct {
 	scimClientID     string
 	scimClientSecret string
 	accountID        string
+	tokenSource      oauth2.TokenSource
 }
 
+// ConnectorConfig contains the value of the connector flags.
 type ConnectorConfig struct {
 	ScimConfigFile   string
 	ServiceProvider  string
@@ -106,8 +112,8 @@ func (r *RateLimitError) Error() string {
 	return fmt.Sprintf("rate limited, retry after: %s", r.RetryAfter.String())
 }
 
-func NewClient(httpClient *http.Client, config scimConfig.SCIMConfig, connectorConfig *ConnectorConfig) (*Client, error) {
-	return &Client{
+func NewClient(ctx context.Context, httpClient *http.Client, config scimConfig.SCIMConfig, connectorConfig *ConnectorConfig) (*Client, error) {
+	newClient := &Client{
 		httpClient:       uhttp.NewBaseHttpClient(httpClient),
 		config:           &config,
 		serviceProvider:  connectorConfig.ServiceProvider,
@@ -117,7 +123,34 @@ func NewClient(httpClient *http.Client, config scimConfig.SCIMConfig, connectorC
 		scimClientID:     connectorConfig.ScimClientID,
 		scimClientSecret: connectorConfig.ScimClientSecret,
 		accountID:        connectorConfig.AccountID,
-	}, nil
+	}
+
+	var customHeaders, customQueryParams, customFormBodyValues map[string]string
+	var customContentType string
+
+	if config.Auth.TokenRequestConfig != nil {
+		customHeaders = config.Auth.TokenRequestConfig.Headers
+		customQueryParams = config.Auth.TokenRequestConfig.QueryParams
+		customFormBodyValues = config.Auth.TokenRequestConfig.FormBodyValues
+		customContentType = config.Auth.TokenRequestConfig.ContentType
+	}
+
+	if config.Auth.AuthType == customTokenSource {
+		newClient.tokenSource = oauth2.ReuseTokenSource(nil, &CustomTokenSource{
+			Ctx:          ctx,
+			HTTPClient:   uhttp.NewBaseHttpClient(httpClient),
+			TokenURL:     config.Auth.AuthUrl,
+			ClientID:     connectorConfig.ScimClientID,
+			ClientSecret: connectorConfig.ScimClientSecret,
+
+			ContentType:          customContentType,
+			CustomHeaders:        customHeaders,
+			CustomQueryParams:    customQueryParams,
+			CustomFormBodyValues: customFormBodyValues,
+		})
+	}
+
+	return newClient, nil
 }
 
 func (c *Client) ListUsers(ctx context.Context, pagination PaginationVars) ([]User, Token, error) {
@@ -473,14 +506,39 @@ func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, pa
 	if err != nil {
 		return nil, err
 	}
+	logger := ctxzap.Extract(ctx)
+	requestOptions := []uhttp.RequestOption{
+		uhttp.WithJSONBody(payload),
+		uhttp.WithAcceptJSONHeader(),
+	}
 
-	var authHeader uhttp.RequestOption
-	var acceptHeader uhttp.RequestOption
-
+	// Apply SCIM header if indicated.
 	if c.config.HasScimHeader {
-		acceptHeader = uhttp.WithHeader("Accept", "application/scim+json")
-	} else {
-		acceptHeader = uhttp.WithAcceptJSONHeader()
+		requestOptions = append(requestOptions, uhttp.WithHeader("Accept", "application/scim+json"))
+	}
+
+	// Add request-specific headers
+	requestDefaults := c.config.RequestDefaults
+	if requestDefaults != nil {
+		// Adds custom headers
+		if requestDefaults.Headers != nil {
+			logger.Debug("custom headers found", zap.Int("headers", len(requestDefaults.Headers)))
+			for k, v := range requestDefaults.Headers {
+				logger.Debug("adding custom header", zap.String("header key", k), zap.String("header value", v))
+				requestOptions = append(requestOptions, uhttp.WithHeader(k, v))
+			}
+		}
+
+		// Adds custom Query params
+		if requestDefaults.QueryParams != nil {
+			logger.Debug("custom query params found", zap.Int("query params", len(requestDefaults.QueryParams)))
+			q := u.Query()
+			for k, v := range requestDefaults.QueryParams {
+				logger.Debug("adding custom query param", zap.String("q param key", k), zap.String("q param value", v))
+				q.Set(k, v)
+			}
+			u.RawQuery = q.Encode()
+		}
 	}
 
 	switch c.config.Auth.AuthType {
@@ -492,11 +550,30 @@ func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, pa
 		if c.config.Auth.ApiKeyPrefix != "" {
 			apiKeyHeader = fmt.Sprintf("%s %s", c.config.Auth.ApiKeyPrefix, c.apiKey)
 		}
-		authHeader = uhttp.WithHeader("Authorization", apiKeyHeader)
+		requestOptions = append(requestOptions, uhttp.WithHeader("Authorization", apiKeyHeader))
+
 	case basic:
 		if c.username == "" || c.password == "" {
 			return nil, fmt.Errorf("missing username or password")
 		}
+
+	case customTokenSource:
+		if c.tokenSource == nil {
+			return nil, fmt.Errorf("missing custom token source on the client")
+		}
+
+		token, err := c.tokenSource.Token()
+		if err != nil {
+			return nil, err
+		}
+
+		tokenType := "Bearer"
+		if c.config.Auth.ApiKeyPrefix != "" {
+			tokenType = c.config.Auth.ApiKeyPrefix
+		}
+		authHeader := fmt.Sprintf("%s %s", tokenType, token.AccessToken)
+		requestOptions = append(requestOptions, uhttp.WithHeader("Authorization", authHeader))
+
 	default:
 		return nil, fmt.Errorf("unsupported auth type: %s", c.config.Auth.AuthType)
 	}
@@ -505,10 +582,7 @@ func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, pa
 		ctx,
 		method,
 		u,
-		uhttp.WithJSONBody(payload),
-		uhttp.WithAcceptJSONHeader(),
-		acceptHeader,
-		authHeader,
+		requestOptions...,
 	)
 	if err != nil {
 		return nil, err
@@ -554,6 +628,8 @@ func (c *Client) doRequest(ctx context.Context, method string, reqUrl string, pa
 		if err != nil {
 			return nil, fmt.Errorf("error parsing retry after header: %w", err)
 		}
+
+		// TODO: Analyze - Does the rate limit gets handled by the SDK when returning this?
 		return nil, &RateLimitError{RetryAfter: time.Second * time.Duration(retryAfterSec)}
 	}
 
@@ -584,16 +660,18 @@ func RequestAccessToken(ctx context.Context, vars AuthVars, tokenPath string) (s
 		return "", err
 	}
 
-	var payload AuthBody
+	var reqOpts []uhttp.RequestOption
+
 	// Zoom requires account_id for token request
 	if vars.AccountId != "" && vars.ServiceProvider == zoom {
-		payload = AuthBody{
+		payload := AuthBody{
 			GrantType: "account_credentials",
 			AccountID: vars.AccountId,
 		}
+		reqOpts = append(reqOpts, uhttp.WithAcceptJSONHeader(), uhttp.WithContentTypeJSONHeader(), uhttp.WithJSONBody(payload))
 	}
 
-	req, err := client.NewRequest(ctx, http.MethodPost, u, uhttp.WithJSONBody(payload), uhttp.WithAcceptJSONHeader(), uhttp.WithContentTypeJSONHeader())
+	req, err := client.NewRequest(ctx, http.MethodPost, u, reqOpts...)
 	if err != nil {
 		return "", fmt.Errorf("error creating request: %w", err)
 	}
