@@ -29,7 +29,7 @@ func (o *groupBuilder) ResourceType(ctx context.Context) *v2.ResourceType {
 
 // Create a new connector resource for a SCIM group.
 func groupResource(group scim.Group) (*v2.Resource, error) {
-	profile := map[string]interface{}{
+	profile := map[string]any{
 		"group_id":   group.ID,
 		"group_name": group.DisplayName,
 	}
