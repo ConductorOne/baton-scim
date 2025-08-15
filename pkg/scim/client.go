@@ -254,6 +254,10 @@ func (c *Client) GetUser(ctx context.Context, userID string) (User, error) {
 }
 
 func (c *Client) ListGroups(ctx context.Context, pagination PaginationVars, filters FilterOptions) ([]Group, Token, error) {
+	if c.config.Group == nil {
+		return nil, Token{}, nil
+	}
+
 	groupsUrl, err := url.JoinPath(c.config.ApiEndpoint, groups)
 	if err != nil {
 		return nil, Token{}, err
