@@ -20,11 +20,14 @@ type Connector struct {
 
 // ResourceSyncers returns a ResourceSyncer for each resource type that should be synced from the upstream service.
 func (d *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncer {
-	return []connectorbuilder.ResourceSyncer{
+	syncers := []connectorbuilder.ResourceSyncer{
 		newUserBuilder(d.client, &d.scimConfig.User),
-		newGroupBuilder(d.client),
 		newRoleBuilder(d.client),
 	}
+	if d.scimConfig.Group != nil {
+		syncers = append(syncers, newGroupBuilder(d.client))
+	}
+	return syncers
 }
 
 // Metadata returns metadata about the connector.

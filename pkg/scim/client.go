@@ -254,6 +254,10 @@ func (c *Client) GetUser(ctx context.Context, userID string) (User, error) {
 }
 
 func (c *Client) ListGroups(ctx context.Context, pagination PaginationVars, filters FilterOptions) ([]Group, Token, error) {
+	if c.config.Group == nil {
+		return nil, Token{}, nil
+	}
+
 	groupsUrl, err := url.JoinPath(c.config.ApiEndpoint, groups)
 	if err != nil {
 		return nil, Token{}, err
@@ -297,7 +301,7 @@ func (c *Client) ListGroups(ctx context.Context, pagination PaginationVars, filt
 
 	var result []Group
 	for _, resource := range resourceArray {
-		group, err := MapGroup(resource, &c.config.Group)
+		group, err := MapGroup(resource, c.config.Group)
 		if err != nil {
 			return nil, Token{}, fmt.Errorf("error mapping group data: %w", err)
 		}
@@ -345,7 +349,7 @@ func (c *Client) GetGroup(ctx context.Context, groupID string) (Group, error) {
 	}
 
 	var mappedGroup Group
-	mappedGroup, err = MapGroup(groupResource, &c.config.Group)
+	mappedGroup, err = MapGroup(groupResource, c.config.Group)
 	if err != nil {
 		return Group{}, fmt.Errorf("error mapping group data: %w", err)
 	}
