@@ -23,7 +23,7 @@ type SCIMConfig struct {
 	Auth            AuthOptions           `yaml:"auth" validate:"required"`
 	RequestDefaults *DefaultRequestConfig `yaml:"requestDefaults,omitempty" json:"request_defaults,omitempty" validate:"omitempty"`
 	User            UserMapping           `yaml:"user" validate:"required"`
-	Group           GroupMapping          `yaml:"group" validate:"required"`
+	Group           *GroupMapping         `yaml:"group,omitempty" validate:"omitempty"`
 	Pagination      PaginationMapping     `yaml:"pagination" validate:"required"`
 	Provisioning    ProvisioningMapping   `yaml:"provisioning" validate:"omitempty"`
 }
