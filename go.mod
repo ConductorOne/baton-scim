@@ -6,7 +6,7 @@ toolchain go1.24.6
 
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
-	github.com/conductorone/baton-sdk v0.3.34
+	github.com/conductorone/baton-sdk v0.3.39
 	github.com/ennyjfrick/ruleguard-logfatal v0.0.2
 	github.com/go-playground/validator/v10 v10.23.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
