@@ -6,7 +6,7 @@ toolchain go1.24.6
 
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
-	github.com/conductorone/baton-sdk v0.3.34
+	github.com/conductorone/baton-sdk v0.3.51
 	github.com/ennyjfrick/ruleguard-logfatal v0.0.2
 	github.com/go-playground/validator/v10 v10.23.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
@@ -72,7 +72,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jellydator/ttlcache/v3 v3.3.0 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20240909124753-873cd0166683 // indirect
 	github.com/magiconair/properties v1.8.9 // indirect
