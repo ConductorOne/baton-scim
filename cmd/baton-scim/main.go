@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/conductorone/baton-scim/pkg/batonconfig"
 	scimConfig "github.com/conductorone/baton-scim/pkg/config"
 	"github.com/conductorone/baton-scim/pkg/connector"
 	"github.com/conductorone/baton-scim/pkg/scim"
-	"github.com/spf13/viper"
 
 	"github.com/conductorone/baton-sdk/pkg/config"
 	"github.com/conductorone/baton-sdk/pkg/connectorbuilder"
-	"github.com/conductorone/baton-sdk/pkg/field"
+	"github.com/conductorone/baton-sdk/pkg/connectorrunner"
 	"github.com/conductorone/baton-sdk/pkg/types"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.uber.org/zap"
@@ -27,9 +27,8 @@ func main() {
 		ctx,
 		"baton-scim",
 		getConnector,
-		field.Configuration{
-			Fields: ConfigurationFields,
-		},
+		batonconfig.Config,
+		connectorrunner.WithDefaultCapabilitiesConnectorBuilder(&connector.Connector{}),
 	)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
@@ -45,16 +44,16 @@ func main() {
 	}
 }
 
-func getConnector(ctx context.Context, v *viper.Viper) (types.ConnectorServer, error) {
+func getConnector(ctx context.Context, cfg *batonconfig.Batonconfig) (types.ConnectorServer, error) {
 	l := ctxzap.Extract(ctx)
-	if err := ValidateConfig(v); err != nil {
+	if err := batonconfig.ValidateConfig(cfg); err != nil {
 		return nil, err
 	}
 
 	loadedScimConfig, err := scimConfig.LoadConfig(
-		v.GetString(ScimConfigFileField.FieldName),
-		v.GetString(ServiceProviderField.FieldName),
-		v.GetString(ScimConfigValueField.FieldName),
+		cfg.GetString(batonconfig.ScimConfigFileField.FieldName),
+		cfg.GetString(batonconfig.ServiceProviderField.FieldName),
+		cfg.GetString(batonconfig.ScimConfigValueField.FieldName),
 	)
 	if err != nil {
 		l.Error("error loading config", zap.Error(err))
@@ -62,14 +61,14 @@ func getConnector(ctx context.Context, v *viper.Viper) (types.ConnectorServer, e
 	}
 
 	connectorConfig := scim.ConnectorConfig{
-		Username:         v.GetString(UsernameField.FieldName),
-		Password:         v.GetString(PasswordField.FieldName),
-		ApiKey:           v.GetString(ApiKeyField.FieldName),
-		ScimClientID:     v.GetString(ScimClientIdField.FieldName),
-		ScimClientSecret: v.GetString(ScimClientSecretField.FieldName),
-		AccountID:        v.GetString(AccountIdField.FieldName),
-		ServiceProvider:  v.GetString(ServiceProviderField.FieldName),
-		ScimConfigFile:   v.GetString(ScimConfigFileField.FieldName),
+		Username:         cfg.GetString(batonconfig.UsernameField.FieldName),
+		Password:         cfg.GetString(batonconfig.PasswordField.FieldName),
+		ApiKey:           cfg.GetString(batonconfig.ApiKeyField.FieldName),
+		ScimClientID:     cfg.GetString(batonconfig.ScimClientIdField.FieldName),
+		ScimClientSecret: cfg.GetString(batonconfig.ScimClientSecretField.FieldName),
+		AccountID:        cfg.GetString(batonconfig.AccountIdField.FieldName),
+		ServiceProvider:  cfg.GetString(batonconfig.ServiceProviderField.FieldName),
+		ScimConfigFile:   cfg.GetString(batonconfig.ScimConfigFileField.FieldName),
 	}
 
 	cb, err := connector.New(ctx, loadedScimConfig, &connectorConfig)
