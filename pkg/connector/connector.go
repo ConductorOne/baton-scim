@@ -13,13 +13,13 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 )
 
-type Connector struct {
+type Scim struct {
 	client     *scim.Client
 	scimConfig *scimConfig.SCIMConfig
 }
 
 // ResourceSyncers returns a ResourceSyncer for each resource type that should be synced from the upstream service.
-func (d *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncer {
+func (d *Scim) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncer {
 	syncers := []connectorbuilder.ResourceSyncer{
 		newUserBuilder(d.client, &d.scimConfig.User),
 		newRoleBuilder(d.client),
@@ -31,7 +31,7 @@ func (d *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.Reso
 }
 
 // Metadata returns metadata about the connector.
-func (d *Connector) Metadata(ctx context.Context) (*v2.ConnectorMetadata, error) {
+func (d *Scim) Metadata(ctx context.Context) (*v2.ConnectorMetadata, error) {
 	return &v2.ConnectorMetadata{
 		DisplayName: "Baton SCIM connector",
 		Description: "Generic SCIM connector that syncs users and groups from SCIM API based on provided config.",
@@ -40,7 +40,7 @@ func (d *Connector) Metadata(ctx context.Context) (*v2.ConnectorMetadata, error)
 
 // Validate is called to ensure that the connector is properly configured. It should exercise any API credentials
 // to be sure that they are valid.
-func (d *Connector) Validate(ctx context.Context) (annotations.Annotations, error) {
+func (d *Scim) Validate(ctx context.Context) (annotations.Annotations, error) {
 	_, _, err := d.client.ListUsers(ctx, scim.PaginationVars{Count: 1})
 	if err != nil {
 		return nil, fmt.Errorf("error validating connector: %w", err)
@@ -49,7 +49,7 @@ func (d *Connector) Validate(ctx context.Context) (annotations.Annotations, erro
 }
 
 // New returns a new instance of the connector.
-func New(ctx context.Context, scimConfig *scimConfig.SCIMConfig, connectorConfig *scim.ConnectorConfig) (*Connector, error) {
+func New(ctx context.Context, scimConfig *scimConfig.SCIMConfig, connectorConfig *scim.ConnectorConfig) (*Scim, error) {
 	httpClient, err := uhttp.NewClient(ctx, uhttp.WithLogger(true, ctxzap.Extract(ctx)))
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func New(ctx context.Context, scimConfig *scimConfig.SCIMConfig, connectorConfig
 		return nil, fmt.Errorf("baton-scim: error creating client: %w", err)
 	}
 
-	return &Connector{
+	return &Scim{
 		client:     client,
 		scimConfig: scimConfig,
 	}, nil

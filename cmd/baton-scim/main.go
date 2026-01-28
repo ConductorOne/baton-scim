@@ -28,7 +28,7 @@ func main() {
 		"baton-scim",
 		getConnector,
 		batonconfig.Config,
-		connectorrunner.WithDefaultCapabilitiesConnectorBuilder(&connector.Connector{}),
+		connectorrunner.WithDefaultCapabilitiesConnectorBuilder(&connector.Scim{}),
 	)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
