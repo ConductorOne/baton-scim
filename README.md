@@ -2,7 +2,7 @@
 
 #
 
-`baton-scim` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-scim.svg)](https://pkg.go.dev/github.com/conductorone/baton-scim) ![main ci](https://github.com/conductorone/baton-scim/actions/workflows/main.yaml/badge.svg)
+`baton-scim` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-scim.svg)](https://pkg.go.dev/github.com/conductorone/baton-scim) ![ci](https://github.com/conductorone/baton-scim/actions/workflows/ci.yaml/badge.svg)
 
 `baton-scim` is a generic connector for various SCIM service providers built using
 the [Baton SDK](https://github.com/conductorone/baton-sdk). It communicates with the SCIM API to sync data about users,
