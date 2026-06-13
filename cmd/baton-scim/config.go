@@ -21,6 +21,7 @@ var (
 	ApiKeyField = field.StringField(
 		"api-key",
 		field.WithDescription("API key to authenticate with the SCIM API."),
+		field.WithIsSecret(true),
 	)
 
 	UsernameField = field.StringField(
@@ -31,6 +32,7 @@ var (
 	PasswordField = field.StringField(
 		"password",
 		field.WithDescription("Password for basic auth to authenticate with the SCIM API."),
+		field.WithIsSecret(true),
 	)
 
 	ScimClientIdField = field.StringField(
@@ -41,6 +43,7 @@ var (
 	ScimClientSecretField = field.StringField(
 		"scim-client-secret",
 		field.WithDescription("Client Secret used to obtain access token for the SCIM API. ($BATON_SCIM_CLIENT_SECRET)"),
+		field.WithIsSecret(true),
 	)
 
 	ScimConfigFileField = field.StringField(
