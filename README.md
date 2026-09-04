@@ -129,7 +129,7 @@ baton resources
 ## docker
 
 ```
-docker run --rm -v $(pwd):/out -e BATON_TOKEN=oauth2Token BATON_SERVICE_PROVIDER=slack baton-scim ghcr.io/conductorone/baton-scim:latest -f "/out/sync.c1z"
+docker run --rm -v $(pwd):/out -e BATON_TOKEN=oauth2Token BATON_SERVICE_PROVIDER=slack baton-scim public.ecr.aws/conductorone/baton-scim:latest -f "/out/sync.c1z"
 docker run --rm -v $(pwd):/out ghcr.io/conductorone/baton:latest -f "/out/sync.c1z" resources
 ```
 
