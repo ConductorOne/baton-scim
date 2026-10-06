@@ -20,6 +20,12 @@ groups and roles.
 baton-scim --api-key=USER_OAUTH_TOKEN --service-provider=slack
 ```
 
+### Tesorio
+
+```
+baton-scim --api-key=SCIM_BEARER_TOKEN --service-provider=tesorio -p
+```
+
 ### Zoom
 
 ### Custom Provider
