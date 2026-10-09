@@ -1,0 +1,36 @@
+apiEndpoint: "https://www.canva.com/_scim/v2/"
+hasScimHeader: true
+auth:
+  authType: "apiKey"
+  apiKeyPrefix: "Bearer"
+user:
+  id: "id"
+  userName: "userName"
+  displayName: "displayName"
+  firstName: "name.givenName"
+  lastName: "name.familyName"
+  primaryEmail: "emails[?(@.primary==true)].value"
+  firstEmail: "emails[0].value"
+  active: "active"
+group:
+  id: "id"
+  displayName: "displayName"
+  members:
+    path: "members"
+    id: "value"
+    displayName: "display"
+pagination:
+  totalResults: "totalResults"
+  itemsPerPage: "itemsPerPage"
+  startIndex: "startIndex"
+provisioning:
+  addUserToGroup:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "add"
+    path: "members"
+    valuePath: "value"
+  removeUserFromGroup:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "replace"
+    path: "members"
+    valuePath: "value"
