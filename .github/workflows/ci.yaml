@@ -9,17 +9,19 @@ jobs:
   go-lint:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.23.x
-      - name: Checkout code
-        uses: actions/checkout@v4
+          go-version-file: go.mod
       - name: Run linters
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: latest
-          args: --timeout=3m
+          # Same pin as the shared verify workflow; "latest" resolved to the
+          # v1 line, which refuses the Go version go.mod now targets.
+          version: v2.14.0
+          args: --timeout=6m
   go-test:
     strategy:
       matrix:
