@@ -43,8 +43,9 @@ jobs:
           test-results: test.json
   test-slack:
     runs-on: ubuntu-latest
+    # Not gated on go-lint: a lint failure would skip this job, and the
+    # release gate needs it to run. Lint stays its own signal.
     needs:
-      - go-lint
       - go-test
     env:
       BATON_API_KEY: ${{ secrets.USER_SLACK_OAUTH_TOKEN }}
