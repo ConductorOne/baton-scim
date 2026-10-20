@@ -1,8 +1,6 @@
 module github.com/conductorone/baton-scim
 
-go 1.26.0
-
-toolchain go1.26.9
+go 1.27.3
 
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
