@@ -1,0 +1,34 @@
+apiEndpoint: "https://api.whimsical.com/scim-v2"
+hasScimHeader: true
+auth:
+  authType: "apiKey"
+  apiKeyPrefix: "Bearer"
+user:
+  id: "id"
+  userName: "userName"
+  displayName: "displayName"
+  firstName: "name.givenName"
+  lastName: "name.familyName"
+  primaryEmail: "emails[?(@.primary==true)].value"
+  firstEmail: "emails[0].value"
+  active: "active"
+  # roles:
+  #   path: |
+  #     "urn:ietf:params:scim:schemas:extension:whimsical:2.0:User"
+  #   name: "editor"
+  #   # display: "display"
+pagination:
+  totalResults: "totalResults"
+  itemsPerPage: "itemsPerPage"
+  startIndex: "startIndex"
+provisioning:
+  addUserRole:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "Replace"
+    path: "roles.value"
+    valuePath: "value"
+  removeUserRole:
+    schemas: "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+    op: "Replace"
+    path: "roles.value"
+    valuePath: "value"
