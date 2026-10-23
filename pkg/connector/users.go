@@ -39,15 +39,18 @@ func userResource(user scim.User) (*v2.Resource, error) {
 		userTraitOptions = append(userTraitOptions, resource.WithEmail(user.Email, true))
 	}
 
-	userStatus := v2.UserTrait_Status_STATUS_ENABLED
+	userStatus := v2.Status_RESOURCE_STATUS_ENABLED
 	if !user.Active {
-		userStatus = v2.UserTrait_Status_STATUS_DISABLED
+		userStatus = v2.Status_RESOURCE_STATUS_DISABLED
 	}
-	userTraitOptions = append(userTraitOptions, resource.WithStatus(userStatus), resource.WithUserProfile(profile))
+	resourceOptions := []resource.ResourceOption{
+		resource.WithResourceStatus(userStatus, ""),
+		resource.WithResourceProfile(profile),
+	}
 
 	displayName := user.FirstName + " " + user.LastName
 
-	ret, err := resource.NewUserResource(displayName, userResourceType, user.ID, userTraitOptions)
+	ret, err := resource.NewUserResource(displayName, userResourceType, user.ID, userTraitOptions, resourceOptions...)
 	if err != nil {
 		return nil, err
 	}

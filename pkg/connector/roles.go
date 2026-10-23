@@ -44,11 +44,7 @@ func roleResource(role scim.Role) (*v2.Resource, error) {
 		"role_name": roleName,
 	}
 
-	roleTraitOptions := []rs.RoleTraitOption{
-		rs.WithRoleProfile(profile),
-	}
-
-	ret, err := rs.NewRoleResource(roleName, roleResourceType, roleId, roleTraitOptions)
+	ret, err := rs.NewRoleResource(roleName, roleResourceType, roleId, nil, rs.WithResourceProfile(profile))
 	if err != nil {
 		return nil, err
 	}

@@ -34,11 +34,7 @@ func groupResource(group scim.Group) (*v2.Resource, error) {
 		"group_name": group.DisplayName,
 	}
 
-	groupTraitOptions := []rs.GroupTraitOption{
-		rs.WithGroupProfile(profile),
-	}
-
-	ret, err := rs.NewGroupResource(group.DisplayName, groupResourceType, group.ID, groupTraitOptions)
+	ret, err := rs.NewGroupResource(group.DisplayName, groupResourceType, group.ID, nil, rs.WithResourceProfile(profile))
 	if err != nil {
 		return nil, err
 	}
