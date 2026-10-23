@@ -10,7 +10,7 @@ import (
 var (
 	ServiceProviderField = field.StringField(
 		"service-provider",
-		field.WithDescription("Name of the service provider to sync SCIM data from. E.g 'slack', 'zoom', 'miro', 'postman'."),
+		field.WithDescription("Name of the service provider to sync SCIM data from. E.g 'slack', 'zoom', 'miro', 'postman', 'jellyfish'."),
 	)
 
 	ScimConfigField = field.StringField(
