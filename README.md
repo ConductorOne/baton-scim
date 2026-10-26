@@ -10,6 +10,14 @@ groups and roles.
 
 # Supported service providers:
 
+### Canva
+
+```
+baton-scim --api-key=SCIM_ACCESS_TOKEN --service-provider=canva
+```
+
+Requires Canva Enterprise with SCIM provisioning enabled. Generate the SCIM access token from the Canva admin settings.
+
 ### Miro
 
 ### Postman
