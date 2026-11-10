@@ -4,7 +4,7 @@ go 1.27.3
 
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
-	github.com/conductorone/baton-sdk v0.44.1
+	github.com/conductorone/baton-sdk v0.44.2
 	github.com/ennyjfrick/ruleguard-logfatal v0.0.2
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
@@ -78,7 +78,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jellydator/ttlcache/v3 v3.3.0 // indirect
-	github.com/klauspost/compress v1.18.7 // indirect
+	github.com/klauspost/compress v1.20.2 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
