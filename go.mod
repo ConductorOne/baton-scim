@@ -4,7 +4,7 @@ go 1.27.4
 
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
-	github.com/conductorone/baton-sdk v0.46.1
+	github.com/conductorone/baton-sdk v0.47.0
 	github.com/ennyjfrick/ruleguard-logfatal v0.0.2
 	github.com/go-playground/validator/v10 v10.30.6
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
